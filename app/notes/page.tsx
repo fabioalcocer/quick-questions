@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowLeft, Plus, Search, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ArrowLeft, Loader2, Plus, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -147,9 +148,9 @@ export default function NotesPage() {
 
 	if (loading) {
 		return (
-			<div className="flex items-center justify-center min-h-screen">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+			<div className="flex items-center w-full inset-0 absolute justify-center min-h-screen">
+				<div className="text-center flex flex-col items-center justify-center">
+					<Loader2 className="animate-spin m-4 size-14 text-primary" />
 					<p className="mt-2 text-muted-foreground">Loading notes...</p>
 				</div>
 			</div>
@@ -165,7 +166,7 @@ export default function NotesPage() {
 						<div className="flex items-center justify-between">
 							<div className="flex items-center gap-4">
 								<Link href="/">
-									<Button variant="ghost" size="sm">
+									<Button variant="secondary" size="sm">
 										<ArrowLeft className="h-4 w-4 mr-2" />
 										Back to Quick Answers
 									</Button>
@@ -197,11 +198,16 @@ export default function NotesPage() {
 						{allTags.length > 0 && (
 							<div className="space-y-2">
 								<div className="flex items-center gap-2">
-									<span className="text-sm font-medium text-foreground">
+									<span className="text-sm font-medium mb-1 text-foreground">
 										Filter by tags:
 									</span>
 									{(selectedTags.length > 0 || searchQuery) && (
-										<Button variant="ghost" size="sm" onClick={clearFilters}>
+										<Button
+											variant="ghost"
+											className="hover:bg-transparent hover:text-primary h-max"
+											size="sm"
+											onClick={clearFilters}
+										>
 											<X className="h-4 w-4 mr-1" />
 											Clear filters
 										</Button>
@@ -214,7 +220,10 @@ export default function NotesPage() {
 											variant={
 												selectedTags.includes(tag) ? "default" : "outline"
 											}
-											className="cursor-pointer hover:bg-primary/10"
+											className={cn(
+												"cursor-pointer hover:bg-primary/10",
+												selectedTags.includes(tag) && "hover:bg-primary",
+											)}
 											onClick={() => handleTagFilter(tag)}
 										>
 											{tag}

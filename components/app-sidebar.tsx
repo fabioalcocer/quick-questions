@@ -91,7 +91,7 @@ export function AppSidebar({
 														<Button
 															size="sm"
 															variant="ghost"
-															className="h-6 w-6 p-0"
+															className="h-6 w-6 p-0 hover:bg-primary/90"
 															onClick={(e) => {
 																e.stopPropagation();
 																onEditCategory(category);
@@ -102,7 +102,7 @@ export function AppSidebar({
 														<Button
 															size="sm"
 															variant="ghost"
-															className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+															className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
 															onClick={(e) => {
 																e.stopPropagation();
 																onDeleteCategory(category);

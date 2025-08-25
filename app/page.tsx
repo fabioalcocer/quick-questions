@@ -215,7 +215,7 @@ export default function HomePage() {
 					{selectedCategory ? (
 						<>
 							<div className="border-b border-border p-6 py-3">
-								<div className="container flex items-center justify-between">
+								<div className="container mx-auto flex items-center justify-between">
 									<div>
 										<div className="flex items-center gap-2">
 											<SidebarTrigger className="-ml-1" />
@@ -230,7 +230,7 @@ export default function HomePage() {
 							</div>
 
 							{/* Content */}
-							<div className="p-6">
+							<div className="px-0 py-6 container mx-auto">
 								<div className="">
 									<h1 className="text-2xl font-semibold text-foreground">
 										{selectedCategory.title}
@@ -240,7 +240,7 @@ export default function HomePage() {
 									</p>
 								</div>
 
-								<div className="flex-1 mt-5 container">
+								<div className="flex-1 mt-5">
 									{responses.length > 0 ? (
 										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 											{responses.map((response) => (
