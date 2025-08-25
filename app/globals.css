@@ -1,12 +1,14 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
   /* Enhanced Airtm-inspired color tokens with sophisticated blue palette */
   --background: oklch(1 0 0); /* Pure white background */
-  --foreground: oklch(0.25 0.015 255.395); /* #1f2937 - Darker text for better contrast */
+  --foreground: oklch(
+    0.25 0.015 255.395
+  ); /* #1f2937 - Darker text for better contrast */
   --card: oklch(0.99 0.003 240); /* #fdfdfe - Subtle blue-tinted card */
   --card-foreground: oklch(0.25 0.015 255.395);
   --popover: oklch(1 0 0);
@@ -16,7 +18,9 @@
   --secondary: oklch(0.92 0.02 240); /* #f1f5f9 - Very light blue */
   --secondary-foreground: oklch(0.25 0.015 255.395);
   --muted: oklch(0.96 0.008 240); /* #f8fafc - Subtle muted background */
-  --muted-foreground: oklch(0.5 0.015 255.395); /* #64748b - Balanced muted text */
+  --muted-foreground: oklch(
+    0.5 0.015 255.395
+  ); /* #64748b - Balanced muted text */
   --accent: oklch(0.65 0.18 240); /* #3b82f6 - Vibrant blue accent */
   --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.55 0.25 27.325); /* #dc2626 - Clear destructive */
@@ -30,7 +34,7 @@
   --chart-4: oklch(0.83 0.19 200);
   --chart-5: oklch(0.77 0.19 180);
   --radius: 0.75rem; /* More generous radius for modern look */
-  --sidebar: oklch(0.99 0.003 240);
+  --sidebar: oklch(98.511% 0.00011 271.152);
   --sidebar-foreground: oklch(0.25 0.015 255.395);
   --sidebar-primary: oklch(0.45 0.2 240);
   --sidebar-primary-foreground: oklch(1 0 0);
@@ -79,7 +83,11 @@
 /* Removed all custom utility classes that were causing runtime errors */
 @layer utilities {
   .gradient-blue {
-    background: linear-gradient(135deg, oklch(0.45 0.2 240) 0%, oklch(0.65 0.18 240) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(0.45 0.2 240) 0%,
+      oklch(0.65 0.18 240) 100%
+    );
   }
 }
 
