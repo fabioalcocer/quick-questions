@@ -230,7 +230,7 @@ export default function HomePage() {
 							</div>
 
 							{/* Content */}
-							<div className="px-0 py-6 container mx-auto">
+							<div className="p-6 container mx-auto">
 								<div className="">
 									<h1 className="text-2xl font-semibold text-foreground">
 										{selectedCategory.title}
