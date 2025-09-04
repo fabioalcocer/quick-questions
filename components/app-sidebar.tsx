@@ -58,15 +58,15 @@ export function AppSidebar({
 				</div>
 			</SidebarHeader>
 
-			<SidebarContent className="p-2 pt-0">
+			<SidebarContent className="p-2 pt-0 pr-0">
 				<SidebarGroup>
 					<SidebarGroupLabel>Categories</SidebarGroupLabel>
 					<SidebarGroupAction onClick={onAddCategory}>
 						<Plus className="h-4 w-4" />
 					</SidebarGroupAction>
-					<SidebarGroupContent className="mt-3">
-						<ScrollArea className="flex-1">
-							<SidebarMenu className="space-y-2">
+					<ScrollArea className="h-[calc(100vh-190px)]">
+						<SidebarGroupContent className="mt-3">
+							<SidebarMenu className="space-y-2 pr-2">
 								{categories.map((category) => (
 									<SidebarMenuItem key={category.id}>
 										<Card
@@ -125,8 +125,8 @@ export function AppSidebar({
 									</SidebarMenuItem>
 								))}
 							</SidebarMenu>
-						</ScrollArea>
-					</SidebarGroupContent>
+						</SidebarGroupContent>
+					</ScrollArea>
 				</SidebarGroup>
 			</SidebarContent>
 
