@@ -2,6 +2,7 @@
 
 import type React from "react";
 
+import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -46,6 +47,9 @@ export default function LoginPage() {
 
 	return (
 		<div className="flex min-h-screen w-full items-center justify-center p-6 md:p-10 bg-background">
+			<div className="absolute top-4 right-4">
+				<ModeToggle />
+			</div>
 			<div className="w-full max-w-sm">
 				<div className="flex flex-col gap-6">
 					<Card>

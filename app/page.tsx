@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { CategoryFormSheet } from "@/components/category-form-sheet";
 import { DeleteCategoryDialog } from "@/components/delete-category-dialog";
 import { DeleteResponseDialog } from "@/components/delete-response-dialog";
+import { ModeToggle } from "@/components/mode-toggle";
 import { ResponseCard } from "@/components/response-card";
 import { ResponseFormSheet } from "@/components/response-form-sheet";
 import { Button } from "@/components/ui/button";
@@ -222,10 +223,13 @@ export default function HomePage() {
 											<div className="flex-1" />
 										</div>
 									</div>
-									<Button onClick={handleAddResponse}>
-										<Plus className="h-4 w-4 mr-2" />
-										Create Response
-									</Button>
+									<div className="flex items-center gap-2">
+										<ModeToggle />
+										<Button onClick={handleAddResponse}>
+											<Plus className="h-4 w-4 mr-2" />
+											Create Response
+										</Button>
+									</div>
 								</div>
 							</div>
 

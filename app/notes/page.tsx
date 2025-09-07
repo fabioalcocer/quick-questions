@@ -1,6 +1,7 @@
 "use client";
 
 import { DeleteNoteDialog } from "@/components/delete-note-dialog";
+import { ModeToggle } from "@/components/mode-toggle";
 import { NoteCard } from "@/components/note-card";
 import { NoteFormSheet } from "@/components/note-form-sheet";
 import { Badge } from "@/components/ui/badge";
@@ -172,10 +173,13 @@ export default function NotesPage() {
 									</Button>
 								</Link>
 							</div>
-							<Button onClick={handleAddNote}>
-								<Plus className="h-4 w-4 mr-2" />
-								Create Note
-							</Button>
+							<div className="flex items-center gap-2">
+								<ModeToggle />
+								<Button onClick={handleAddNote}>
+									<Plus className="h-4 w-4 mr-2" />
+									Create Note
+								</Button>
+							</div>
 						</div>
 					</div>
 				</div>

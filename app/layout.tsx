@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { ToastProvider } from "@/components/ui/toast";
@@ -20,7 +21,7 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<style>{`
 html {
@@ -31,10 +32,17 @@ html {
         `}</style>
 			</head>
 			<body>
-				<ToastProvider>
-					<SidebarProvider>{children}</SidebarProvider>
-					<Toaster richColors position="top-center" />
-				</ToastProvider>
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="system"
+					enableSystem
+					disableTransitionOnChange
+				>
+					<ToastProvider>
+						<SidebarProvider>{children}</SidebarProvider>
+						<Toaster richColors position="top-center" />
+					</ToastProvider>
+				</ThemeProvider>
 			</body>
 		</html>
 	);

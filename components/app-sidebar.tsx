@@ -51,7 +51,7 @@ export function AppSidebar({
 	return (
 		<Sidebar>
 			<SidebarHeader className="border-b border-sidebar-border">
-				<div className="p-2">
+				<div className="p-2 flex items-center justify-between">
 					<h1 className="text-xl font-semibold text-sidebar-foreground">
 						Quick Answers
 					</h1>
