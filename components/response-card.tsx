@@ -32,11 +32,11 @@ export function ResponseCard({
 	const getLanguageColor = (language: string) => {
 		switch (language.toLowerCase()) {
 			case "spanish":
-				return "bg-red-50 text-red-700 hover:bg-red-100 border-red-200 shadow-sm";
+				return "bg-red-50 dark:bg-red-600 dark:text-white dark:border-red-700 text-red-700 hover:bg-red-100 border-red-200 shadow-sm";
 			case "english":
-				return "bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 shadow-sm";
+				return "bg-blue-50 dark:bg-blue-500 dark:text-white dark:border-blue-600 text-blue-700 hover:bg-blue-100 border-blue-200 shadow-sm";
 			case "portuguese":
-				return "bg-green-50 text-green-700 hover:bg-green-100 border-green-200 shadow-sm";
+				return "bg-green-50 dark:bg-green-700 dark:text-white dark:border-green-700 text-green-700 hover:bg-green-100 border-green-200 shadow-sm";
 			default:
 				return "bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200 shadow-sm";
 		}
@@ -56,7 +56,7 @@ export function ResponseCard({
 	};
 
 	return (
-		<Card className="group py-0 pt-5 gap-0 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700 dark:hover:border-gray-800 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-blue-100 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer hover:border-blue-200">
+		<Card className="group py-0 pt-5 gap-0 dark:from-gray-950 dark:to-gray-800 dark:border-gray-800 dark:hover:border-gray-700 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-blue-100 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer hover:border-blue-200">
 			<CardHeader className="pb-4">
 				<div className="flex items-start justify-between">
 					<Badge
