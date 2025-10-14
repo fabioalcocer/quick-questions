@@ -56,7 +56,10 @@ export function ResponseCard({
 	};
 
 	return (
-		<Card className="group py-0 pt-5 gap-0 dark:from-zinc-950 dark:to-zinc-800 dark:border-zinc-800 dark:hover:border-zinc-700 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-blue-100 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer hover:border-blue-200">
+		<Card
+			className="group py-0 pt-5 gap-0 dark:from-zinc-950 dark:to-zinc-800 dark:border-zinc-800 dark:hover:border-zinc-700 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-blue-100 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer hover:border-blue-200 hover:scale-[1.02] active:scale-[0.98]"
+			onClick={handleCopy}
+		>
 			<CardHeader className="pb-4">
 				<div className="flex items-start justify-between">
 					<Badge
@@ -73,7 +76,10 @@ export function ResponseCard({
 							size="sm"
 							variant="ghost"
 							className="h-9 w-9 p-0 hover:bg-primary/80 active:scale-[0.92] hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-							onClick={handleCopy}
+							onClick={(e) => {
+								e.stopPropagation();
+								handleCopy();
+							}}
 							disabled={copied}
 						>
 							{copied ? (
@@ -86,7 +92,10 @@ export function ResponseCard({
 							size="sm"
 							variant="ghost"
 							className="h-9 w-9 p-0 hover:bg-primary/80 active:scale-[0.92] hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-							onClick={() => onEdit(response)}
+							onClick={(e) => {
+								e.stopPropagation();
+								onEdit(response);
+							}}
 						>
 							<Edit className="h-4 w-4" />
 						</Button>
@@ -94,7 +103,10 @@ export function ResponseCard({
 							size="sm"
 							variant="ghost"
 							className="h-9 w-9 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-							onClick={() => onDelete(response)}
+							onClick={(e) => {
+								e.stopPropagation();
+								onDelete(response);
+							}}
 						>
 							<Trash2 className="h-4 w-4" />
 						</Button>

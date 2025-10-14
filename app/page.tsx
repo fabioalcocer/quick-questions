@@ -123,11 +123,21 @@ export default function HomePage() {
 			const { data, error } = await supabase
 				.from("responses")
 				.select("*")
-				.eq("category_id", categoryId)
-				.order("created_at", { ascending: false });
+				.eq("category_id", categoryId);
 
 			if (error) throw error;
-			setResponses(data || []);
+
+			// Sort by language priority: Spanish > English > Portuguese
+			const languageOrder = { Spanish: 0, English: 1, Portuguese: 2 };
+			const sortedResponses = (data || []).sort((a, b) => {
+				const aOrder =
+					languageOrder[a.language as keyof typeof languageOrder] ?? 999;
+				const bOrder =
+					languageOrder[b.language as keyof typeof languageOrder] ?? 999;
+				return aOrder - bOrder;
+			});
+
+			setResponses(sortedResponses);
 		} catch (error) {
 			console.error("Error loading responses:", error);
 		}
