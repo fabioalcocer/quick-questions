@@ -23,13 +23,20 @@ export default function RootLayout({
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<head>
-				<style>{`
-html {
-  font-family: ${GeistSans.style.fontFamily};
-  --font-sans: ${GeistSans.variable};
-  --font-mono: ${GeistMono.variable};
-}
-        `}</style>
+				<script
+					async
+					crossOrigin="anonymous"
+					src="https://tweakcn.com/live-preview.min.js"
+				/>
+				<style>
+					{`
+            html {
+              font-family: ${GeistSans.style.fontFamily};
+              --font-sans: ${GeistSans.variable};
+              --font-mono: ${GeistMono.variable};
+            }
+          `}
+				</style>
 			</head>
 			<body>
 				<ThemeProvider

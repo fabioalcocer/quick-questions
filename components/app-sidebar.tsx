@@ -70,7 +70,7 @@ export function AppSidebar({
 								{categories.map((category) => (
 									<SidebarMenuItem key={category.id}>
 										<Card
-											className={`group cursor-pointer transition-colors py-0 hover:bg-sidebar-accent ${
+											className={`group cursor-pointer transition-colors rounded-md py-0 hover:bg-sidebar-accent ${
 												selectedCategoryId === category.id
 													? "bg-sidebar-accent border-sidebar-primary"
 													: ""
@@ -80,10 +80,10 @@ export function AppSidebar({
 											<CardHeader className="p-3">
 												<div className="flex items-start justify-between">
 													<div className="flex-1 min-w-0">
-														<CardTitle className="text-sm font-medium text-sidebar-foreground truncate">
+														<CardTitle className="text-sm font-medium text-sidebar-foreground">
 															{category.title}
 														</CardTitle>
-														<CardDescription className="text-xs mt-1 line-clamp-2">
+														<CardDescription className="text-xs mt-1 line-clamp-2 text-foreground/80">
 															{category.description}
 														</CardDescription>
 													</div>

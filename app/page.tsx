@@ -30,10 +30,11 @@ export interface Response {
 
 export default function HomePage() {
 	const [categories, setCategories] = useState<Category[]>([]);
-	const [responses, setResponses] = useState<Response[]>([]);
+	const [allResponses, setAllResponses] = useState<Response[]>([]);
+	const [filteredResponses, setFilteredResponses] = useState<Response[]>([]);
 	const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
 	const [loading, setLoading] = useState(true);
-	const [user, setUser] = useState<any>(null);
+	const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
 
 	// Category modals
 	const [categoryFormOpen, setCategoryFormOpen] = useState(false);
@@ -61,14 +62,15 @@ export default function HomePage() {
 	useEffect(() => {
 		if (user) {
 			loadCategories();
+			loadAllResponses();
 		}
 	}, [user]);
 
 	useEffect(() => {
-		if (selectedCategoryId) {
-			loadResponses(selectedCategoryId);
+		if (selectedCategoryId && allResponses.length > 0) {
+			filterResponsesByCategory(selectedCategoryId);
 		}
-	}, [selectedCategoryId]);
+	}, [selectedCategoryId, allResponses]);
 
 	const checkUser = async () => {
 		const {
@@ -118,12 +120,9 @@ export default function HomePage() {
 		}
 	};
 
-	const loadResponses = async (categoryId: string) => {
+	const loadAllResponses = async () => {
 		try {
-			const { data, error } = await supabase
-				.from("responses")
-				.select("*")
-				.eq("category_id", categoryId);
+			const { data, error } = await supabase.from("responses").select("*");
 
 			if (error) throw error;
 
@@ -137,10 +136,17 @@ export default function HomePage() {
 				return aOrder - bOrder;
 			});
 
-			setResponses(sortedResponses);
+			setAllResponses(sortedResponses);
 		} catch (error) {
-			console.error("Error loading responses:", error);
+			console.error("Error loading all responses:", error);
 		}
+	};
+
+	const filterResponsesByCategory = (categoryId: string) => {
+		const filtered = allResponses.filter(
+			(response) => response.category_id === categoryId,
+		);
+		setFilteredResponses(filtered);
 	};
 
 	// Category handlers
@@ -165,9 +171,10 @@ export default function HomePage() {
 
 	const handleDeleteCategorySuccess = () => {
 		loadCategories();
+		loadAllResponses(); // Reload all responses to remove deleted category's responses
 		if (selectedCategoryId === categoryToDelete?.id) {
 			setSelectedCategoryId("");
-			setResponses([]);
+			setFilteredResponses([]);
 		}
 	};
 
@@ -188,12 +195,12 @@ export default function HomePage() {
 	};
 
 	const handleResponseFormSuccess = () => {
-		loadResponses(selectedCategoryId);
+		loadAllResponses(); // Reload all responses to get updated data
 		loadCategories(); // Refresh counts
 	};
 
 	const handleDeleteResponseSuccess = () => {
-		loadResponses(selectedCategoryId);
+		loadAllResponses(); // Reload all responses to get updated data
 		loadCategories(); // Refresh counts
 	};
 
@@ -255,9 +262,9 @@ export default function HomePage() {
 								</div>
 
 								<div className="flex-1 mt-5">
-									{responses.length > 0 ? (
+									{filteredResponses.length > 0 ? (
 										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-											{responses.map((response) => (
+											{filteredResponses.map((response) => (
 												<ResponseCard
 													key={response.id}
 													response={response}
