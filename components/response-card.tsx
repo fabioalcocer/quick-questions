@@ -57,7 +57,7 @@ export function ResponseCard({
 
 	return (
 		<Card
-			className="group py-0 pt-5 gap-0 rounded-md dark:from-zinc-950 dark:to-zinc-800 dark:border-zinc-800 dark:hover:border-zinc-700 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-blue-100 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer hover:border-blue-200 hover:scale-[1.02] active:scale-[0.98]"
+			className="group py-0 pt-5 gap-0 rounded-md dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-800 dark:border-zinc-800 dark:hover:border-zinc-700 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-blue-100 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer hover:border-blue-200 active:scale-[0.98]"
 			onClick={handleCopy}
 		>
 			<CardHeader className="pb-4">
