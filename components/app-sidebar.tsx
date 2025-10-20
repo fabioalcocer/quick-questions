@@ -21,6 +21,12 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Edit, MessageSquare, Plus, StickyNote, Trash2 } from "lucide-react";
 import Link from "next/link";
 
@@ -69,59 +75,74 @@ export function AppSidebar({
 							<SidebarMenu className="space-y-2 pr-2">
 								{categories.map((category) => (
 									<SidebarMenuItem key={category.id}>
-										<Card
-											className={`group cursor-pointer transition-colors rounded-md py-0 hover:bg-sidebar-accent ${
-												selectedCategoryId === category.id
-													? "bg-sidebar-accent border-sidebar-primary"
-													: ""
-											}`}
-											onClick={() => onCategorySelect(category.id)}
-										>
-											<CardHeader className="p-3">
-												<div className="flex items-start justify-between">
-													<div className="flex-1 min-w-0">
-														<CardTitle className="text-sm font-medium text-sidebar-foreground">
-															{category.title}
-														</CardTitle>
-														<CardDescription className="text-xs mt-1 line-clamp-2 text-foreground/80">
-															{category.description}
-														</CardDescription>
-													</div>
-													<div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-														<Button
-															size="sm"
-															variant="ghost"
-															className="h-6 w-6 p-0 hover:bg-primary/90"
-															onClick={(e) => {
-																e.stopPropagation();
-																onEditCategory(category);
-															}}
-														>
-															<Edit className="h-3 w-3" />
-														</Button>
-														<Button
-															size="sm"
-															variant="ghost"
-															className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
-															onClick={(e) => {
-																e.stopPropagation();
-																onDeleteCategory(category);
-															}}
-														>
-															<Trash2 className="h-3 w-3" />
-														</Button>
-													</div>
-												</div>
-												{category.responseCount !== undefined && (
-													<div className="flex items-center gap-1 mt-2">
-														<MessageSquare className="h-4 w-4 text-muted-foreground" />
-														<span className="text-xs font-medium text-muted-foreground">
-															{category.responseCount}
-														</span>
-													</div>
-												)}
-											</CardHeader>
-										</Card>
+										<TooltipProvider>
+											<Tooltip delayDuration={400}>
+												<TooltipTrigger asChild>
+													<Card
+														className={`group cursor-pointer transition-colors rounded-md py-0 hover:bg-sidebar-accent ${
+															selectedCategoryId === category.id
+																? "bg-sidebar-accent border-sidebar-primary"
+																: ""
+														}`}
+														onClick={() => onCategorySelect(category.id)}
+													>
+														<CardHeader className="p-3">
+															<div className="flex items-start justify-between">
+																<div className="flex-1 min-w-0">
+																	<CardTitle className="text-sm font-medium text-sidebar-foreground">
+																		{category.title}
+																	</CardTitle>
+																	<CardDescription className="text-xs mt-1 line-clamp-2 text-foreground/80">
+																		{category.description}
+																	</CardDescription>
+																</div>
+																<div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+																	<Button
+																		size="sm"
+																		variant="ghost"
+																		className="h-6 w-6 p-0 hover:bg-primary/90"
+																		onClick={(e) => {
+																			e.stopPropagation();
+																			onEditCategory(category);
+																		}}
+																	>
+																		<Edit className="h-3 w-3" />
+																	</Button>
+																	<Button
+																		size="sm"
+																		variant="ghost"
+																		className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
+																		onClick={(e) => {
+																			e.stopPropagation();
+																			onDeleteCategory(category);
+																		}}
+																	>
+																		<Trash2 className="h-3 w-3" />
+																	</Button>
+																</div>
+															</div>
+															{category.responseCount !== undefined && (
+																<div className="flex items-center gap-1 mt-2">
+																	<MessageSquare className="h-4 w-4 text-muted-foreground" />
+																	<span className="text-xs font-medium text-muted-foreground">
+																		{category.responseCount}
+																	</span>
+																</div>
+															)}
+														</CardHeader>
+													</Card>
+												</TooltipTrigger>
+												<TooltipContent
+													className="max-w-[250px] bg-black border-zinc-800 rounded-sm"
+													side="right"
+												>
+													<p className="font-semibold mb-2">{category.title}</p>
+													<p className="text-xs text-foreground/80">
+														{category.description}
+													</p>
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
 									</SidebarMenuItem>
 								))}
 							</SidebarMenu>
