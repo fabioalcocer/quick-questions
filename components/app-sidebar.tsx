@@ -27,8 +27,17 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Edit, MessageSquare, Plus, StickyNote, Trash2 } from "lucide-react";
+import {
+	Edit,
+	MessageSquare,
+	Plus,
+	Search,
+	StickyNote,
+	Trash2,
+} from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import { Input } from "./ui/input";
 
 interface Category {
 	id: string;
@@ -54,6 +63,16 @@ export function AppSidebar({
 	onEditCategory,
 	onDeleteCategory,
 }: AppSidebarProps) {
+	const [searchQuery, setSearchQuery] = useState("");
+
+	const filteredCategories = categories.filter((category) => {
+		const query = searchQuery.toLowerCase();
+		return (
+			category.title.toLowerCase().includes(query) ||
+			category.description.toLowerCase().includes(query)
+		);
+	});
+
 	return (
 		<Sidebar>
 			<SidebarHeader className="border-b border-sidebar-border">
@@ -65,15 +84,25 @@ export function AppSidebar({
 			</SidebarHeader>
 
 			<SidebarContent className="p-2 pt-0 pr-0">
-				<SidebarGroup>
-					<SidebarGroupLabel>Categories</SidebarGroupLabel>
+				<SidebarGroup className="mt-2">
+					<SidebarGroupLabel className="px-0">
+						<div className="relative max-w-52">
+							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+							<Input
+								placeholder="Search categories......"
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								className="pl-10 border-zinc-200 dark:border-input"
+							/>
+						</div>
+					</SidebarGroupLabel>
 					<SidebarGroupAction onClick={onAddCategory}>
-						<Plus className="h-4 w-4" />
+						<Plus className="min-h-5 min-w-5" />
 					</SidebarGroupAction>
-					<ScrollArea className="h-[calc(100vh-190px)]">
+					<ScrollArea className="h-[calc(100vh-190px)] mt-1">
 						<SidebarGroupContent className="mt-3">
 							<SidebarMenu className="space-y-2 pr-2">
-								{categories.map((category) => (
+								{filteredCategories.map((category) => (
 									<SidebarMenuItem key={category.id}>
 										<TooltipProvider>
 											<Tooltip delayDuration={400}>
@@ -133,11 +162,13 @@ export function AppSidebar({
 													</Card>
 												</TooltipTrigger>
 												<TooltipContent
-													className="max-w-[250px] bg-black border-zinc-800 rounded-sm"
+													className="max-w-[250px] dark:bg-black bg-zinc-50 border-zinc-200 dark:border-zinc-800 rounded-sm"
 													side="right"
 												>
-													<p className="font-semibold mb-2">{category.title}</p>
-													<p className="text-xs text-foreground/80">
+													<p className="font-semibold mb-2 dark:text-foreground text-foreground">
+														{category.title}
+													</p>
+													<p className="text-xs dark:text-foreground/80 text-foreground">
 														{category.description}
 													</p>
 												</TooltipContent>
