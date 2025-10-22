@@ -35,6 +35,9 @@ export default function HomePage() {
 	const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
 	const [loading, setLoading] = useState(true);
 	const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
+	const [reorderedCategoryIds, setReorderedCategoryIds] = useState<string[]>(
+		[],
+	);
 
 	// Category modals
 	const [categoryFormOpen, setCategoryFormOpen] = useState(false);
@@ -88,7 +91,7 @@ export default function HomePage() {
 			const { data, error } = await supabase
 				.from("categories")
 				.select("*")
-				.order("created_at", { ascending: false });
+				.order("created_at", { ascending: true });
 
 			if (error) throw error;
 
@@ -139,6 +142,40 @@ export default function HomePage() {
 			setAllResponses(sortedResponses);
 		} catch (error) {
 			console.error("Error loading all responses:", error);
+		}
+	};
+
+	const updateCategoryOrder = async (reorderedCategories: Category[]) => {
+		try {
+			// Update local state immediately for optimistic UI
+			setCategories(reorderedCategories);
+
+			// Calculate new timestamps: oldest (first) gets earliest timestamp
+			const now = new Date();
+			const updates = reorderedCategories.map((category, index) => {
+				// Subtract seconds based on reverse index so first item has oldest timestamp
+				const newTimestamp = new Date(
+					now.getTime() - (reorderedCategories.length - index) * 1000,
+				);
+
+				return supabase
+					.from("categories")
+					.update({ created_at: newTimestamp.toISOString() })
+					.eq("id", category.id);
+			});
+
+			await Promise.all(updates);
+
+			// Set reordered IDs for pulse animation
+			setReorderedCategoryIds(reorderedCategories.map((cat) => cat.id));
+			await loadCategories();
+
+			setTimeout(() => {
+				setReorderedCategoryIds([]);
+			}, 1000);
+		} catch (error) {
+			console.error("Error updating category order:", error);
+			await loadCategories();
 		}
 	};
 
@@ -226,6 +263,8 @@ export default function HomePage() {
 				onAddCategory={handleAddCategory}
 				onEditCategory={handleEditCategory}
 				onDeleteCategory={handleDeleteCategory}
+				onCategoryReorder={updateCategoryOrder}
+				reorderedCategoryIds={reorderedCategoryIds}
 			/>
 
 			<SidebarInset>
