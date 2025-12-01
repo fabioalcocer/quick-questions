@@ -122,7 +122,7 @@ export default function Ai01() {
             )}
             {status !== 'ready' && (
               <ShimmeringText
-                text="Thinking..."
+                text="Reasoning..."
                 duration={2}
                 wave={false}
                 className="text-white mx-auto"
