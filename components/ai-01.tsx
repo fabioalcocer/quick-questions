@@ -120,7 +120,7 @@ export default function Ai01() {
                 </Message>
               ))
             )}
-            {status === 'ready' && (
+            {status !== 'ready' && (
               <Shimmer className="mx-auto">Reasoning...</Shimmer>
             )}
           </ConversationContent>
