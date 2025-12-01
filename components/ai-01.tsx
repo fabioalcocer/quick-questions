@@ -36,6 +36,7 @@ import {
 import { DefaultChatTransport } from 'ai'
 import { MessageSquare } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { ShimmeringText } from './ui/shadcn-io/shimmering-text'
 
 export default function Ai01() {
   const [message, setMessage] = useState('')
@@ -120,9 +121,13 @@ export default function Ai01() {
               ))
             )}
             {status !== 'ready' && (
-              <div className="text-center text-white mb-4" key={Date.now()}>
-                Thinking...
-              </div>
+              <ShimmeringText
+                text="Thinking..."
+                duration={2}
+                wave={false}
+                className="text-white mx-auto"
+                shimmeringColor="var(--muted-foreground)"
+              />
             )}
           </ConversationContent>
           <ConversationScrollButton />
