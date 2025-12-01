@@ -123,8 +123,8 @@ export default function Ai01() {
             {status !== 'ready' && (
               <ShimmeringText
                 text="Reasoning..."
-                duration={2}
-                wave={false}
+                duration={1.5}
+                wave={true}
                 className="text-white mx-auto"
                 shimmeringColor="var(--muted-foreground)"
               />
