@@ -2,53 +2,54 @@
 
 import { Button } from "@/components/ui/button";
 import {
-	Card,
-	CardDescription,
-	CardHeader,
-	CardTitle,
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-	Sidebar,
-	SidebarContent,
-	SidebarFooter,
-	SidebarGroup,
-	SidebarGroupAction,
-	SidebarGroupContent,
-	SidebarGroupLabel,
-	SidebarHeader,
-	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupAction,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-	DndContext,
-	type DragEndEvent,
-	PointerSensor,
-	closestCenter,
-	useSensor,
-	useSensors,
+  DndContext,
+  type DragEndEvent,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
 } from "@dnd-kit/core";
 import {
-	SortableContext,
-	useSortable,
-	verticalListSortingStrategy,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-	Edit,
-	GripVertical,
-	MessageSquare,
-	Plus,
-	Search,
-	StickyNote,
-	Trash2,
+  Edit,
+  GripVertical,
+  MessageSquare,
+  Plus,
+  Search,
+  SparklesIcon,
+  StickyNote,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -313,11 +314,17 @@ export function AppSidebar({
 
 			<SidebarFooter className="border-t border-sidebar-border">
 				<SidebarMenu>
-					<SidebarMenuItem>
+					<SidebarMenuItem className="flex items-center gap-2">
 						<SidebarMenuButton asChild>
 							<Link href="/notes">
 								<StickyNote className="min-w-5" />
 								<span>Notes</span>
+							</Link>
+						</SidebarMenuButton>
+						<SidebarMenuButton asChild>
+							<Link href="/agent">
+								<SparklesIcon className="min-w-5" />
+								<span>Agent AI</span>
 							</Link>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
