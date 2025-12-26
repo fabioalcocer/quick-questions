@@ -6,13 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -23,56 +16,43 @@ import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 
-interface Category {
-  id: string;
-  title: string;
-  description: string;
-  topic_id?: string;
-}
-
 interface Topic {
   id: string;
   title: string;
+  description: string;
 }
 
-interface CategoryFormSheetProps {
+interface TopicFormSheetProps {
   isOpen: boolean;
   onClose: () => void;
-  category?: Category | null;
-  topics: Topic[];
-  defaultTopicId?: string;
+  topic?: Topic | null;
   onSuccess: () => void;
 }
 
-export function CategoryFormSheet({
+export function TopicFormSheet({
   isOpen,
   onClose,
-  category,
-  topics,
-  defaultTopicId,
+  topic,
   onSuccess,
-}: CategoryFormSheetProps) {
+}: TopicFormSheetProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [topicId, setTopicId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
-  const isEditing = !!category;
+  const isEditing = !!topic;
 
   useEffect(() => {
-    if (category) {
-      setTitle(category.title);
-      setDescription(category.description);
-      setTopicId(category.topic_id || "unassigned");
+    if (topic) {
+      setTitle(topic.title);
+      setDescription(topic.description);
     } else {
       setTitle("");
       setDescription("");
-      setTopicId(defaultTopicId === "all" ? "unassigned" : (defaultTopicId || "unassigned"));
     }
     setError(null);
-  }, [category, isOpen, defaultTopicId]);
+  }, [topic, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,25 +68,25 @@ export function CategoryFormSheet({
         throw new Error("User not authenticated");
       }
 
-      const categoryData = {
-        title: title.trim(),
-        description: description.trim(),
-        topic_id: topicId === "unassigned" ? null : topicId,
-        updated_at: isEditing ? new Date().toISOString() : undefined,
-        user_id: isEditing ? undefined : user.id,
-      };
-
-      if (isEditing && category) {
-        // Update existing category
+      if (isEditing && topic) {
+        // Update existing topic
         const { error } = await supabase
-          .from("categories")
-          .update(categoryData)
-          .eq("id", category.id);
+          .from("topics")
+          .update({
+            title: title.trim(),
+            description: description.trim(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", topic.id);
 
         if (error) throw error;
       } else {
-        // Create new category
-        const { error } = await supabase.from("categories").insert(categoryData);
+        // Create new topic
+        const { error } = await supabase.from("topics").insert({
+          title: title.trim(),
+          description: description.trim(),
+          user_id: user.id,
+        });
 
         if (error) throw error;
       }
@@ -123,7 +103,6 @@ export function CategoryFormSheet({
   const handleClose = () => {
     setTitle("");
     setDescription("");
-    setTopicId("");
     setError(null);
     onClose();
   };
@@ -133,50 +112,28 @@ export function CategoryFormSheet({
       <SheetContent className="sm:max-w-lg w-full">
         <SheetHeader className="pb-2">
           <SheetTitle className="text-2xl font-semibold text-foreground">
-            {isEditing ? "Edit Category" : "Create New Category"}
+            {isEditing ? "Edit Topic" : "Create New Topic"}
           </SheetTitle>
           <SheetDescription className="text-base text-muted-foreground leading-relaxed">
             {isEditing
-              ? "Update the category information below."
-              : "Add a new category to organize your quick responses."}
+              ? "Update the topic information below."
+              : "Add a new topic to organize your categories."}
           </SheetDescription>
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 px-4 pt-4">
           <div className="space-y-4">
             <Label
-              htmlFor="topic-select"
+              htmlFor="topic-title"
               className="text-sm font-medium text-foreground"
             >
-              Select Topic
-            </Label>
-            <Select value={topicId} onValueChange={setTopicId}>
-              <SelectTrigger id="topic-select">
-                <SelectValue placeholder="Seleccionar un tema..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="unassigned">Selecciona un topic</SelectItem>
-                {topics.map((topic) => (
-                  <SelectItem key={topic.id} value={topic.id}>
-                    {topic.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-4">
-            <Label
-              htmlFor="title"
-              className="text-sm font-medium text-foreground"
-            >
-              Category Title
+              Topic Title
             </Label>
             <Input
-              id="title"
+              id="topic-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Offline advice and close"
+              placeholder="e.g., General Inquiries"
               required
               maxLength={100}
             />
@@ -184,16 +141,16 @@ export function CategoryFormSheet({
 
           <div className="space-y-4">
             <Label
-              htmlFor="description"
+              htmlFor="topic-description"
               className="text-sm font-medium text-foreground"
             >
               Description
             </Label>
             <Textarea
-              id="description"
+              id="topic-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Brief description of when to use this category..."
+              placeholder="Brief description of this topic..."
               rows={4}
               maxLength={500}
               className="resize-vertical p-4 focus:shadow-sm border-border transition-all duration-200 text-base leading-relaxed focus:border-primary"
@@ -224,8 +181,8 @@ export function CategoryFormSheet({
               {isLoading
                 ? "Saving..."
                 : isEditing
-                  ? "Update Category"
-                  : "Create Category"}
+                  ? "Update Topic"
+                  : "Create Topic"}
             </Button>
           </div>
         </form>

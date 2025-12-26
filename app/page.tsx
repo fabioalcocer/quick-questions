@@ -4,380 +4,501 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { CategoryFormSheet } from "@/components/category-form-sheet";
 import { DeleteCategoryDialog } from "@/components/delete-category-dialog";
 import { DeleteResponseDialog } from "@/components/delete-response-dialog";
+import { DeleteTopicDialog } from "@/components/delete-topic-dialog";
 import { ModeToggle } from "@/components/mode-toggle";
 import { ResponseCard } from "@/components/response-card";
 import { ResponseFormSheet } from "@/components/response-form-sheet";
+import { TopicFormSheet } from "@/components/topic-form-sheet";
+import { TopicsSidebar } from "@/components/topics-sidebar";
 import { Button } from "@/components/ui/button";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+interface Topic {
+  id: string;
+  title: string;
+  description: string;
+}
+
 interface Category {
-	id: string;
-	title: string;
-	description: string;
-	responseCount?: number;
+  id: string;
+  title: string;
+  description: string;
+  responseCount?: number;
+  topic_id?: string;
 }
 
 export interface Response {
-	id: string;
-	text: string;
-	language: string;
-	category_id: string;
+  id: string;
+  text: string;
+  language: string;
+  category_id: string;
 }
 
 export default function HomePage() {
-	const [categories, setCategories] = useState<Category[]>([]);
-	const [allResponses, setAllResponses] = useState<Response[]>([]);
-	const [filteredResponses, setFilteredResponses] = useState<Response[]>([]);
-	const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-	const [loading, setLoading] = useState(true);
-	const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
-	const [reorderedCategoryIds, setReorderedCategoryIds] = useState<string[]>(
-		[],
-	);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [selectedTopicId, setSelectedTopicId] = useState<string>("all");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [allResponses, setAllResponses] = useState<Response[]>([]);
+  const [filteredResponses, setFilteredResponses] = useState<Response[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
+  const [reorderedCategoryIds, setReorderedCategoryIds] = useState<string[]>(
+    [],
+  );
 
-	// Category modals
-	const [categoryFormOpen, setCategoryFormOpen] = useState(false);
-	const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-	const [deleteCategoryOpen, setDeleteCategoryOpen] = useState(false);
-	const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
-		null,
-	);
+  // Topic modals
+  const [topicFormOpen, setTopicFormOpen] = useState(false);
+  const [editingTopic, setEditingTopic] = useState<Topic | null>(null);
+  const [deleteTopicOpen, setDeleteTopicOpen] = useState(false);
+  const [topicToDelete, setTopicToDelete] = useState<Topic | null>(null);
 
-	// Response modals
-	const [responseFormOpen, setResponseFormOpen] = useState(false);
-	const [editingResponse, setEditingResponse] = useState<Response | null>(null);
-	const [deleteResponseOpen, setDeleteResponseOpen] = useState(false);
-	const [responseToDelete, setResponseToDelete] = useState<Response | null>(
-		null,
-	);
+  // Category modals
+  const [categoryFormOpen, setCategoryFormOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [deleteCategoryOpen, setDeleteCategoryOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
+    null,
+  );
 
-	const router = useRouter();
-	const supabase = createClient();
+  // Response modals
+  const [responseFormOpen, setResponseFormOpen] = useState(false);
+  const [editingResponse, setEditingResponse] = useState<Response | null>(null);
+  const [deleteResponseOpen, setDeleteResponseOpen] = useState(false);
+  const [responseToDelete, setResponseToDelete] = useState<Response | null>(
+    null,
+  );
 
-	useEffect(() => {
-		checkUser();
-	}, []);
+  const router = useRouter();
+  const supabase = createClient();
 
-	useEffect(() => {
-		if (user) {
-			loadCategories();
-			loadAllResponses();
-		}
-	}, [user]);
+  useEffect(() => {
+    checkUser();
+  }, []);
 
-	useEffect(() => {
-		if (selectedCategoryId && allResponses.length > 0) {
-			filterResponsesByCategory(selectedCategoryId);
-		}
-	}, [selectedCategoryId, allResponses]);
+  useEffect(() => {
+    if (user) {
+      loadTopics();
+      loadCategories();
+      loadAllResponses();
+    }
+  }, [user]);
 
-	const checkUser = async () => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-		if (!user) {
-			router.push("/auth/login");
-			return;
-		}
-		setUser(user);
-	};
+  useEffect(() => {
+    if (selectedCategoryId && allResponses.length > 0) {
+      filterResponsesByCategory(selectedCategoryId);
+    }
+  }, [selectedCategoryId, allResponses]);
 
-	const loadCategories = async () => {
-		try {
-			const { data, error } = await supabase
-				.from("categories")
-				.select("*")
-				.order("created_at", { ascending: true });
+  const checkUser = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      router.push("/auth/login");
+      return;
+    }
+    setUser(user);
+  };
 
-			if (error) throw error;
+  const loadTopics = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("topics")
+        .select("*")
+        .order("created_at", { ascending: true });
 
-			// Load response counts for each category
-			const categoriesWithCounts = await Promise.all(
-				data.map(async (category) => {
-					const { count } = await supabase
-						.from("responses")
-						.select("*", { count: "exact", head: true })
-						.eq("category_id", category.id);
+      if (error) throw error;
+      setTopics(data || []);
 
-					return {
-						...category,
-						responseCount: count || 0,
-					};
-				}),
-			);
+      if (data && data.length > 0 && !selectedTopicId) {
+        setSelectedTopicId("all");
+      }
+    } catch (error) {
+      console.error("Error loading topics:", error);
+    }
+  };
 
-			setCategories(categoriesWithCounts);
+  const loadCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .order("created_at", { ascending: true });
 
-			// Select first category by default
-			if (categoriesWithCounts.length > 0 && !selectedCategoryId) {
-				setSelectedCategoryId(categoriesWithCounts[0].id);
-			}
-		} catch (error) {
-			console.error("Error loading categories:", error);
-		} finally {
-			setLoading(false);
-		}
-	};
+      if (error) throw error;
 
-	const loadAllResponses = async () => {
-		try {
-			const { data, error } = await supabase.from("responses").select("*");
+      const categoriesWithCounts = await Promise.all(
+        (data || []).map(async (category) => {
+          const { count } = await supabase
+            .from("responses")
+            .select("*", { count: "exact", head: true })
+            .eq("category_id", category.id);
 
-			if (error) throw error;
+          return {
+            ...category,
+            responseCount: count || 0,
+          };
+        }),
+      );
 
-			// Sort by language priority: Spanish > English > Portuguese
-			const languageOrder = { Spanish: 0, English: 1, Portuguese: 2 };
-			const sortedResponses = (data || []).sort((a, b) => {
-				const aOrder =
-					languageOrder[a.language as keyof typeof languageOrder] ?? 999;
-				const bOrder =
-					languageOrder[b.language as keyof typeof languageOrder] ?? 999;
-				return aOrder - bOrder;
-			});
+      setCategories(categoriesWithCounts);
 
-			setAllResponses(sortedResponses);
-		} catch (error) {
-			console.error("Error loading all responses:", error);
-		}
-	};
+      // Handle default category selection when topic changes or initially
+      if (categoriesWithCounts.length > 0 && !selectedCategoryId) {
+        const firstCatInTopic = categoriesWithCounts.find(c => c.topic_id === selectedTopicId);
+        if (firstCatInTopic) {
+          setSelectedCategoryId(firstCatInTopic.id);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading categories:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-	const updateCategoryOrder = async (reorderedCategories: Category[]) => {
-		try {
-			// Update local state immediately for optimistic UI
-			setCategories(reorderedCategories);
+  const loadAllResponses = async () => {
+    try {
+      const { data, error } = await supabase.from("responses").select("*");
 
-			// Calculate new timestamps: oldest (first) gets earliest timestamp
-			const now = new Date();
-			const updates = reorderedCategories.map((category, index) => {
-				// Subtract seconds based on reverse index so first item has oldest timestamp
-				const newTimestamp = new Date(
-					now.getTime() - (reorderedCategories.length - index) * 1000,
-				);
+      if (error) throw error;
 
-				return supabase
-					.from("categories")
-					.update({ created_at: newTimestamp.toISOString() })
-					.eq("id", category.id);
-			});
+      const languageOrder = { Spanish: 0, English: 1, Portuguese: 2 };
+      const sortedResponses = (data || []).sort((a, b) => {
+        const aOrder =
+          languageOrder[a.language as keyof typeof languageOrder] ?? 999;
+        const bOrder =
+          languageOrder[b.language as keyof typeof languageOrder] ?? 999;
+        return aOrder - bOrder;
+      });
 
-			await Promise.all(updates);
+      setAllResponses(sortedResponses);
+    } catch (error) {
+      console.error("Error loading all responses:", error);
+    }
+  };
 
-			// Set reordered IDs for pulse animation
-			setReorderedCategoryIds(reorderedCategories.map((cat) => cat.id));
-			await loadCategories();
+  const updateCategoryOrder = async (reorderedCategories: Category[]) => {
+    try {
+      // Find all categories first to maintain full list
+      const otherTopicsCategories = categories.filter(c => c.topic_id !== selectedTopicId);
+      const newCategories = [...otherTopicsCategories, ...reorderedCategories];
+      setCategories(newCategories);
 
-			setTimeout(() => {
-				setReorderedCategoryIds([]);
-			}, 1000);
-		} catch (error) {
-			console.error("Error updating category order:", error);
-			await loadCategories();
-		}
-	};
+      const now = new Date();
+      const updates = reorderedCategories.map((category, index) => {
+        const newTimestamp = new Date(
+          now.getTime() - (reorderedCategories.length - index) * 1000,
+        );
 
-	const filterResponsesByCategory = (categoryId: string) => {
-		const filtered = allResponses.filter(
-			(response) => response.category_id === categoryId,
-		);
-		setFilteredResponses(filtered);
-	};
+        return supabase
+          .from("categories")
+          .update({ created_at: newTimestamp.toISOString() })
+          .eq("id", category.id);
+      });
 
-	// Category handlers
-	const handleAddCategory = () => {
-		setEditingCategory(null);
-		setCategoryFormOpen(true);
-	};
+      await Promise.all(updates);
+      setReorderedCategoryIds(reorderedCategories.map((cat) => cat.id));
+      await loadCategories();
 
-	const handleEditCategory = (category: Category) => {
-		setEditingCategory(category);
-		setCategoryFormOpen(true);
-	};
+      setTimeout(() => {
+        setReorderedCategoryIds([]);
+      }, 1000);
+    } catch (error) {
+      console.error("Error updating category order:", error);
+      await loadCategories();
+    }
+  };
 
-	const handleDeleteCategory = (category: Category) => {
-		setCategoryToDelete(category);
-		setDeleteCategoryOpen(true);
-	};
+  const filterResponsesByCategory = (categoryId: string) => {
+    const filtered = allResponses.filter(
+      (response) => response.category_id === categoryId,
+    );
+    setFilteredResponses(filtered);
+  };
 
-	const handleCategoryFormSuccess = () => {
-		loadCategories();
-	};
+  // Topic handlers
+  const handleAddTopic = () => {
+    setEditingTopic(null);
+    setTopicFormOpen(true);
+  };
 
-	const handleDeleteCategorySuccess = () => {
-		loadCategories();
-		loadAllResponses(); // Reload all responses to remove deleted category's responses
-		if (selectedCategoryId === categoryToDelete?.id) {
-			setSelectedCategoryId("");
-			setFilteredResponses([]);
-		}
-	};
+  const handleEditTopic = (topic: Topic) => {
+    setEditingTopic(topic);
+    setTopicFormOpen(true);
+  };
 
-	// Response handlers
-	const handleAddResponse = () => {
-		setEditingResponse(null);
-		setResponseFormOpen(true);
-	};
+  const handleDeleteTopic = (topic: Topic) => {
+    setTopicToDelete(topic);
+    setDeleteTopicOpen(true);
+  };
 
-	const handleEditResponse = (response: Response) => {
-		setEditingResponse(response);
-		setResponseFormOpen(true);
-	};
+  const handleTopicFormSuccess = () => {
+    loadTopics();
+  };
 
-	const handleDeleteResponse = (response: Response) => {
-		setResponseToDelete(response);
-		setDeleteResponseOpen(true);
-	};
+  const handleDeleteTopicSuccess = () => {
+    loadTopics();
+    loadCategories();
+    if (selectedTopicId === topicToDelete?.id) {
+      setSelectedTopicId("all");
+    }
+  };
 
-	const handleResponseFormSuccess = () => {
-		loadAllResponses(); // Reload all responses to get updated data
-		loadCategories(); // Refresh counts
-	};
+  // Category handlers
+  const handleAddCategory = () => {
+    setEditingCategory(null);
+    setCategoryFormOpen(true);
+  };
 
-	const handleDeleteResponseSuccess = () => {
-		loadAllResponses(); // Reload all responses to get updated data
-		loadCategories(); // Refresh counts
-	};
+  const handleEditCategory = (category: Category) => {
+    setEditingCategory(category);
+    setCategoryFormOpen(true);
+  };
 
-	if (loading) {
-		return (
-			<div className="flex items-center w-full inset-0 absolute justify-center min-h-screen">
-				<div className="text-center">
-					<Loader2 className="animate-spin m-4 size-14 text-primary" />
-					<p className="mt-2 text-muted-foreground">Loading...</p>
-				</div>
-			</div>
-		);
-	}
+  const handleDeleteCategory = (category: Category) => {
+    setCategoryToDelete(category);
+    setDeleteCategoryOpen(true);
+  };
 
-	const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
+  const handleCategoryFormSuccess = () => {
+    loadCategories();
+  };
 
-	return (
-		<>
-			<AppSidebar
-				categories={categories}
-				selectedCategoryId={selectedCategoryId}
-				onCategorySelect={setSelectedCategoryId}
-				onAddCategory={handleAddCategory}
-				onEditCategory={handleEditCategory}
-				onDeleteCategory={handleDeleteCategory}
-				onCategoryReorder={updateCategoryOrder}
-				reorderedCategoryIds={reorderedCategoryIds}
-			/>
+  const handleDeleteCategorySuccess = () => {
+    loadCategories();
+    loadAllResponses();
+    if (selectedCategoryId === categoryToDelete?.id) {
+      setSelectedCategoryId("");
+      setFilteredResponses([]);
+    }
+  };
 
-			<SidebarInset>
-				<main className="flex-1 flex flex-col">
-					{selectedCategory ? (
-						<>
-							<div className="border-b border-border p-6 py-3">
-								<div className="container mx-auto flex items-center justify-between">
-									<div>
-										<div className="flex items-center gap-2">
-											<SidebarTrigger className="-ml-1" />
-											<div className="flex-1" />
-										</div>
-									</div>
-									<div className="flex items-center gap-2">
-										<ModeToggle />
-										<Button onClick={handleAddResponse}>
-											<Plus className="h-4 w-4 mr-2" />
-											Create Response
-										</Button>
-									</div>
-								</div>
-							</div>
+  // Response handlers
+  const handleAddResponse = () => {
+    setEditingResponse(null);
+    setResponseFormOpen(true);
+  };
 
-							{/* Content */}
-							<div className="p-6 container mx-auto">
-								<div className="">
-									<h1 className="text-2xl font-semibold text-foreground">
-										{selectedCategory.title}
-									</h1>
-									<p className="text-muted-foreground mt-1">
-										{selectedCategory.description}
-									</p>
-								</div>
+  const handleEditResponse = (response: Response) => {
+    setEditingResponse(response);
+    setResponseFormOpen(true);
+  };
 
-								<div className="flex-1 mt-5">
-									{filteredResponses.length > 0 ? (
-										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-											{filteredResponses.map((response) => (
-												<ResponseCard
-													key={response.id}
-													response={response}
-													onEdit={handleEditResponse}
-													onDelete={handleDeleteResponse}
-												/>
-											))}
-										</div>
-									) : (
-										<div className="flex items-center justify-center h-64">
-											<div className="text-center">
-												<p className="text-muted-foreground mb-4">
-													No responses yet in this category
-												</p>
-												<Button onClick={handleAddResponse}>
-													<Plus className="h-4 w-4 mr-2" />
-													Create First Response
-												</Button>
-											</div>
-										</div>
-									)}
-								</div>
-							</div>
-						</>
-					) : (
-						<div className="flex-1 flex items-center justify-center">
-							<div className="text-center">
-								<p className="text-muted-foreground mb-4">
-									{categories.length === 0
-										? "No categories yet. Create your first category to get started."
-										: "Select a category to view responses"}
-								</p>
-								{categories.length === 0 && (
-									<Button onClick={handleAddCategory}>
-										<Plus className="h-4 w-4 mr-2" />
-										Create First Category
-									</Button>
-								)}
-							</div>
-						</div>
-					)}
-				</main>
-			</SidebarInset>
+  const handleDeleteResponse = (response: Response) => {
+    setResponseToDelete(response);
+    setDeleteResponseOpen(true);
+  };
 
-			{/* Category Modals */}
-			<CategoryFormSheet
-				isOpen={categoryFormOpen}
-				onClose={() => setCategoryFormOpen(false)}
-				category={editingCategory}
-				onSuccess={handleCategoryFormSuccess}
-			/>
+  const handleResponseFormSuccess = () => {
+    loadAllResponses();
+    loadCategories();
+  };
 
-			<DeleteCategoryDialog
-				isOpen={deleteCategoryOpen}
-				onClose={() => setDeleteCategoryOpen(false)}
-				category={categoryToDelete}
-				onSuccess={handleDeleteCategorySuccess}
-			/>
+  const handleDeleteResponseSuccess = () => {
+    loadAllResponses();
+    loadCategories();
+  };
 
-			{/* Response Modals */}
-			<ResponseFormSheet
-				isOpen={responseFormOpen}
-				onClose={() => setResponseFormOpen(false)}
-				response={editingResponse}
-				categoryId={selectedCategoryId}
-				onSuccess={handleResponseFormSuccess}
-			/>
+  if (loading) {
+    return (
+      <div className="flex items-center w-full inset-0 absolute justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="animate-spin m-4 size-14 text-primary" />
+          <p className="mt-2 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-			<DeleteResponseDialog
-				isOpen={deleteResponseOpen}
-				onClose={() => setDeleteResponseOpen(false)}
-				response={responseToDelete}
-				onSuccess={handleDeleteResponseSuccess}
-			/>
-		</>
-	);
+  const filteredCategories = selectedTopicId === "all"
+    ? categories
+    : categories.filter(c => c.topic_id === selectedTopicId);
+  const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
+
+  return (
+    <SidebarProvider>
+      <TopicsSidebar
+        topics={topics}
+        selectedTopicId={selectedTopicId}
+        onTopicSelect={(id) => {
+          setSelectedTopicId(id);
+          const filtered = id === "all" ? categories : categories.filter(c => c.topic_id === id);
+          setSelectedCategoryId(filtered[0]?.id || "");
+        }}
+        onAddTopic={handleAddTopic}
+        onEditTopic={handleEditTopic}
+        onDeleteTopic={handleDeleteTopic}
+      />
+
+      <AppSidebar
+        categories={filteredCategories}
+        selectedCategoryId={selectedCategoryId}
+        onCategorySelect={setSelectedCategoryId}
+        onAddCategory={handleAddCategory}
+        onEditCategory={handleEditCategory}
+        onDeleteCategory={handleDeleteCategory}
+        onCategoryReorder={updateCategoryOrder}
+        reorderedCategoryIds={reorderedCategoryIds}
+      />
+
+      <SidebarInset>
+        <main className="flex-1 flex flex-col">
+          {selectedCategory ? (
+            <>
+              <div className="border-b border-border p-6 py-3">
+                <div className="container mx-auto flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <SidebarTrigger className="-ml-1" />
+                    <div className="flex-1" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ModeToggle />
+                    <Button onClick={handleAddResponse}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Response
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 container mx-auto">
+                <div className="">
+                  <h1 className="text-2xl font-semibold text-foreground">
+                    {selectedCategory.title}
+                  </h1>
+                  <p className="text-muted-foreground mt-1">
+                    {selectedCategory.description}
+                  </p>
+                </div>
+
+                <div className="flex-1 mt-5">
+                  {filteredResponses.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filteredResponses.map((response) => (
+                        <ResponseCard
+                          key={response.id}
+                          response={response}
+                          onEdit={handleEditResponse}
+                          onDelete={handleDeleteResponse}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="text-center">
+                        <p className="text-muted-foreground mb-4">
+                          No responses yet in this category
+                        </p>
+                        <Button onClick={handleAddResponse}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create First Response
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col">
+              <div className="border-b border-border p-6 py-3">
+                <div className="container mx-auto flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <SidebarTrigger className="-ml-1" />
+                    <div className="flex-1" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ModeToggle />
+                  </div>
+                </div>
+              </div>
+              <div className="flex-1 flex items-center justify-center p-6">
+                <div className="text-center max-w-md">
+                  {topics.length === 0 ? (
+                    <>
+                      <p className="text-muted-foreground mb-6">
+                        No topics yet. Create your first topic to start organizing your categories and responses.
+                      </p>
+                      <Button onClick={handleAddTopic} size="lg">
+                        <Plus className="h-5 w-5 mr-2" />
+                        Create First Topic
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-muted-foreground mb-6">
+                        {filteredCategories.length === 0
+                          ? "This topic doesn't have any categories yet. Create your first category to get started."
+                          : "Select a category from the sidebar to view its responses."}
+                      </p>
+                      {filteredCategories.length === 0 && (
+                        <Button onClick={handleAddCategory} size="lg">
+                          <Plus className="h-5 w-5 mr-2" />
+                          Create First Category
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </SidebarInset>
+
+      {/* Topic Modals */}
+      <TopicFormSheet
+        isOpen={topicFormOpen}
+        onClose={() => setTopicFormOpen(false)}
+        topic={editingTopic}
+        onSuccess={handleTopicFormSuccess}
+      />
+
+      <DeleteTopicDialog
+        isOpen={deleteTopicOpen}
+        onClose={() => setDeleteTopicOpen(false)}
+        topic={topicToDelete}
+        onSuccess={handleDeleteTopicSuccess}
+      />
+
+      {/* Category Modals */}
+      <CategoryFormSheet
+        isOpen={categoryFormOpen}
+        onClose={() => setCategoryFormOpen(false)}
+        category={editingCategory}
+        topics={topics}
+        defaultTopicId={selectedTopicId}
+        onSuccess={handleCategoryFormSuccess}
+      />
+
+      <DeleteCategoryDialog
+        isOpen={deleteCategoryOpen}
+        onClose={() => setDeleteCategoryOpen(false)}
+        category={categoryToDelete}
+        onSuccess={handleDeleteCategorySuccess}
+      />
+
+      {/* Response Modals */}
+      <ResponseFormSheet
+        isOpen={responseFormOpen}
+        onClose={() => setResponseFormOpen(false)}
+        response={editingResponse}
+        categoryId={selectedCategoryId}
+        onSuccess={handleResponseFormSuccess}
+      />
+
+      <DeleteResponseDialog
+        isOpen={deleteResponseOpen}
+        onClose={() => setDeleteResponseOpen(false)}
+        response={responseToDelete}
+        onSuccess={handleDeleteResponseSuccess}
+      />
+    </SidebarProvider>
+  );
 }
