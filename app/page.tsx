@@ -348,7 +348,7 @@ export default function HomePage() {
       />
 
       <SidebarInset>
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col max-h-[100dvh] overflow-y-auto">
           {selectedCategory ? (
             <>
               <div className="border-b border-border p-6 py-3">
