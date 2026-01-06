@@ -1,309 +1,323 @@
-"use client";
+'use client'
 
-import { AppSidebar } from "@/components/app-sidebar";
-import { CategoryFormSheet } from "@/components/category-form-sheet";
-import { DeleteCategoryDialog } from "@/components/delete-category-dialog";
-import { DeleteResponseDialog } from "@/components/delete-response-dialog";
-import { DeleteTopicDialog } from "@/components/delete-topic-dialog";
-import { ModeToggle } from "@/components/mode-toggle";
-import { ResponseCard } from "@/components/response-card";
-import { ResponseFormSheet } from "@/components/response-form-sheet";
-import { TopicFormSheet } from "@/components/topic-form-sheet";
-import { TopicsSidebar } from "@/components/topics-sidebar";
-import { Button } from "@/components/ui/button";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { createClient } from "@/lib/supabase/client";
-import { Loader2, Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { AppSidebar } from '@/components/app-sidebar'
+import { CategoryFormSheet } from '@/components/category-form-sheet'
+import { DeleteCategoryDialog } from '@/components/delete-category-dialog'
+import { DeleteResponseDialog } from '@/components/delete-response-dialog'
+import { DeleteTopicDialog } from '@/components/delete-topic-dialog'
+import { ModeToggle } from '@/components/mode-toggle'
+import { ResponseCard } from '@/components/response-card'
+import { ResponseFormSheet } from '@/components/response-form-sheet'
+import { TopicFormSheet } from '@/components/topic-form-sheet'
+import { TopicsSidebar } from '@/components/topics-sidebar'
+import { Button } from '@/components/ui/button'
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar'
+import { createClient } from '@/lib/supabase/client'
+import { Loader2, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 interface Topic {
-  id: string;
-  title: string;
-  description: string;
+  id: string
+  title: string
+  description: string
 }
 
 interface Category {
-  id: string;
-  title: string;
-  description: string;
-  responseCount?: number;
-  topic_id?: string;
+  id: string
+  title: string
+  description: string
+  responseCount?: number
+  topic_id?: string
 }
 
 export interface Response {
-  id: string;
-  text: string;
-  language: string;
-  category_id: string;
+  id: string
+  text: string
+  language: string
+  category_id: string
 }
 
 export default function HomePage() {
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [selectedTopicId, setSelectedTopicId] = useState<string>("all");
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [allResponses, setAllResponses] = useState<Response[]>([]);
-  const [filteredResponses, setFilteredResponses] = useState<Response[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
-  const [reorderedCategoryIds, setReorderedCategoryIds] = useState<string[]>(
-    [],
-  );
+  const [topics, setTopics] = useState<Topic[]>([])
+  const [selectedTopicId, setSelectedTopicId] = useState<string>('all')
+  const [categories, setCategories] = useState<Category[]>([])
+  const [allResponses, setAllResponses] = useState<Response[]>([])
+  const [filteredResponses, setFilteredResponses] = useState<Response[]>([])
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null)
+  const [reorderedCategoryIds, setReorderedCategoryIds] = useState<string[]>([])
 
   // Topic modals
-  const [topicFormOpen, setTopicFormOpen] = useState(false);
-  const [editingTopic, setEditingTopic] = useState<Topic | null>(null);
-  const [deleteTopicOpen, setDeleteTopicOpen] = useState(false);
-  const [topicToDelete, setTopicToDelete] = useState<Topic | null>(null);
+  const [topicFormOpen, setTopicFormOpen] = useState(false)
+  const [editingTopic, setEditingTopic] = useState<Topic | null>(null)
+  const [deleteTopicOpen, setDeleteTopicOpen] = useState(false)
+  const [topicToDelete, setTopicToDelete] = useState<Topic | null>(null)
 
   // Category modals
-  const [categoryFormOpen, setCategoryFormOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [deleteCategoryOpen, setDeleteCategoryOpen] = useState(false);
+  const [categoryFormOpen, setCategoryFormOpen] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [deleteCategoryOpen, setDeleteCategoryOpen] = useState(false)
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
     null,
-  );
+  )
 
   // Response modals
-  const [responseFormOpen, setResponseFormOpen] = useState(false);
-  const [editingResponse, setEditingResponse] = useState<Response | null>(null);
-  const [deleteResponseOpen, setDeleteResponseOpen] = useState(false);
+  const [responseFormOpen, setResponseFormOpen] = useState(false)
+  const [editingResponse, setEditingResponse] = useState<Response | null>(null)
+  const [deleteResponseOpen, setDeleteResponseOpen] = useState(false)
   const [responseToDelete, setResponseToDelete] = useState<Response | null>(
     null,
-  );
+  )
 
-  const router = useRouter();
-  const supabase = createClient();
+  const router = useRouter()
+  const supabase = createClient()
 
   useEffect(() => {
-    checkUser();
-  }, []);
+    checkUser()
+  }, [])
 
   useEffect(() => {
     if (user) {
-      loadTopics();
-      loadCategories();
-      loadAllResponses();
+      loadTopics()
+      loadCategories()
+      loadAllResponses()
     }
-  }, [user]);
+  }, [user])
 
   useEffect(() => {
     if (selectedCategoryId && allResponses.length > 0) {
-      filterResponsesByCategory(selectedCategoryId);
+      filterResponsesByCategory(selectedCategoryId)
     }
-  }, [selectedCategoryId, allResponses]);
+  }, [selectedCategoryId, allResponses])
 
   const checkUser = async () => {
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.getUser()
     if (!user) {
-      router.push("/auth/login");
-      return;
+      router.push('/auth/login')
+      return
     }
-    setUser(user);
-  };
+    setUser(user)
+  }
 
   const loadTopics = async () => {
     try {
       const { data, error } = await supabase
-        .from("topics")
-        .select("*")
-        .order("created_at", { ascending: true });
+        .from('topics')
+        .select('*')
+        .order('created_at', { ascending: true })
 
-      if (error) throw error;
-      setTopics(data || []);
+      if (error) throw error
+      setTopics(data || [])
 
       if (data && data.length > 0 && !selectedTopicId) {
-        setSelectedTopicId("all");
+        setSelectedTopicId('all')
       }
     } catch (error) {
-      console.error("Error loading topics:", error);
+      console.error('Error loading topics:', error)
     }
-  };
+  }
 
   const loadCategories = async () => {
     try {
       const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .order("created_at", { ascending: true });
+        .from('categories')
+        .select('*')
+        .order('created_at', { ascending: true })
 
-      if (error) throw error;
+      if (error) throw error
 
-      const categoriesWithCounts = await Promise.all(
-        (data || []).map(async (category) => {
-          const { count } = await supabase
-            .from("responses")
-            .select("*", { count: "exact", head: true })
-            .eq("category_id", category.id);
+      // Optimize: Fetch all responses counts in a single query if possible or fetch all and count locally
+      const { data: responsesData, error: responsesError } = await supabase
+        .from('responses')
+        .select('category_id')
 
-          return {
-            ...category,
-            responseCount: count || 0,
-          };
-        }),
-      );
+      if (responsesError) throw responsesError
 
-      setCategories(categoriesWithCounts);
+      const countMap = (responsesData || []).reduce(
+        (acc: Record<string, number>, curr) => {
+          acc[curr.category_id] = (acc[curr.category_id] || 0) + 1
+          return acc
+        },
+        {},
+      )
+
+      const categoriesWithCounts = (data || []).map((category) => ({
+        ...category,
+        responseCount: countMap[category.id] || 0,
+      }))
+
+      setCategories(categoriesWithCounts)
 
       // Handle default category selection when topic changes or initially
       if (categoriesWithCounts.length > 0 && !selectedCategoryId) {
-        const firstCatInTopic = categoriesWithCounts.find(c => c.topic_id === selectedTopicId);
+        const firstCatInTopic = categoriesWithCounts.find(
+          (c) => c.topic_id === selectedTopicId,
+        )
         if (firstCatInTopic) {
-          setSelectedCategoryId(firstCatInTopic.id);
+          setSelectedCategoryId(firstCatInTopic.id)
         }
       }
     } catch (error) {
-      console.error("Error loading categories:", error);
+      console.error('Error loading categories:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const loadAllResponses = async () => {
     try {
-      const { data, error } = await supabase.from("responses").select("*");
+      const { data, error } = await supabase.from('responses').select('*')
 
-      if (error) throw error;
+      if (error) throw error
 
-      const languageOrder = { Spanish: 0, English: 1, Portuguese: 2 };
+      const languageOrder = { Spanish: 0, English: 1, Portuguese: 2 }
       const sortedResponses = (data || []).sort((a, b) => {
         const aOrder =
-          languageOrder[a.language as keyof typeof languageOrder] ?? 999;
+          languageOrder[a.language as keyof typeof languageOrder] ?? 999
         const bOrder =
-          languageOrder[b.language as keyof typeof languageOrder] ?? 999;
-        return aOrder - bOrder;
-      });
+          languageOrder[b.language as keyof typeof languageOrder] ?? 999
+        return aOrder - bOrder
+      })
 
-      setAllResponses(sortedResponses);
+      setAllResponses(sortedResponses)
     } catch (error) {
-      console.error("Error loading all responses:", error);
+      console.error('Error loading all responses:', error)
     }
-  };
+  }
 
   const updateCategoryOrder = async (reorderedCategories: Category[]) => {
     try {
       // Find all categories first to maintain full list
-      const otherTopicsCategories = categories.filter(c => c.topic_id !== selectedTopicId);
-      const newCategories = [...otherTopicsCategories, ...reorderedCategories];
-      setCategories(newCategories);
+      const otherTopicsCategories =
+        selectedTopicId === 'all'
+          ? []
+          : categories.filter((c) => c.topic_id !== selectedTopicId)
 
-      const now = new Date();
+      const newCategories = [...otherTopicsCategories, ...reorderedCategories]
+      setCategories(newCategories)
+
+      const now = new Date()
       const updates = reorderedCategories.map((category, index) => {
         const newTimestamp = new Date(
           now.getTime() - (reorderedCategories.length - index) * 1000,
-        );
+        )
 
         return supabase
-          .from("categories")
+          .from('categories')
           .update({ created_at: newTimestamp.toISOString() })
-          .eq("id", category.id);
-      });
+          .eq('id', category.id)
+      })
 
-      await Promise.all(updates);
-      setReorderedCategoryIds(reorderedCategories.map((cat) => cat.id));
-      await loadCategories();
+      await Promise.all(updates)
+      setReorderedCategoryIds(reorderedCategories.map((cat) => cat.id))
+      await loadCategories()
 
       setTimeout(() => {
-        setReorderedCategoryIds([]);
-      }, 1000);
+        setReorderedCategoryIds([])
+      }, 1000)
     } catch (error) {
-      console.error("Error updating category order:", error);
-      await loadCategories();
+      console.error('Error updating category order:', error)
+      await loadCategories()
     }
-  };
+  }
 
   const filterResponsesByCategory = (categoryId: string) => {
     const filtered = allResponses.filter(
       (response) => response.category_id === categoryId,
-    );
-    setFilteredResponses(filtered);
-  };
+    )
+    setFilteredResponses(filtered)
+  }
 
   // Topic handlers
   const handleAddTopic = () => {
-    setEditingTopic(null);
-    setTopicFormOpen(true);
-  };
+    setEditingTopic(null)
+    setTopicFormOpen(true)
+  }
 
   const handleEditTopic = (topic: Topic) => {
-    setEditingTopic(topic);
-    setTopicFormOpen(true);
-  };
+    setEditingTopic(topic)
+    setTopicFormOpen(true)
+  }
 
   const handleDeleteTopic = (topic: Topic) => {
-    setTopicToDelete(topic);
-    setDeleteTopicOpen(true);
-  };
+    setTopicToDelete(topic)
+    setDeleteTopicOpen(true)
+  }
 
   const handleTopicFormSuccess = () => {
-    loadTopics();
-  };
+    loadTopics()
+  }
 
   const handleDeleteTopicSuccess = () => {
-    loadTopics();
-    loadCategories();
+    loadTopics()
+    loadCategories()
     if (selectedTopicId === topicToDelete?.id) {
-      setSelectedTopicId("all");
+      setSelectedTopicId('all')
     }
-  };
+  }
 
   // Category handlers
   const handleAddCategory = () => {
-    setEditingCategory(null);
-    setCategoryFormOpen(true);
-  };
+    setEditingCategory(null)
+    setCategoryFormOpen(true)
+  }
 
   const handleEditCategory = (category: Category) => {
-    setEditingCategory(category);
-    setCategoryFormOpen(true);
-  };
+    setEditingCategory(category)
+    setCategoryFormOpen(true)
+  }
 
   const handleDeleteCategory = (category: Category) => {
-    setCategoryToDelete(category);
-    setDeleteCategoryOpen(true);
-  };
+    setCategoryToDelete(category)
+    setDeleteCategoryOpen(true)
+  }
 
   const handleCategoryFormSuccess = () => {
-    loadCategories();
-  };
+    loadCategories()
+  }
 
   const handleDeleteCategorySuccess = () => {
-    loadCategories();
-    loadAllResponses();
+    loadCategories()
+    loadAllResponses()
     if (selectedCategoryId === categoryToDelete?.id) {
-      setSelectedCategoryId("");
-      setFilteredResponses([]);
+      setSelectedCategoryId('')
+      setFilteredResponses([])
     }
-  };
+  }
 
   // Response handlers
   const handleAddResponse = () => {
-    setEditingResponse(null);
-    setResponseFormOpen(true);
-  };
+    setEditingResponse(null)
+    setResponseFormOpen(true)
+  }
 
   const handleEditResponse = (response: Response) => {
-    setEditingResponse(response);
-    setResponseFormOpen(true);
-  };
+    setEditingResponse(response)
+    setResponseFormOpen(true)
+  }
 
   const handleDeleteResponse = (response: Response) => {
-    setResponseToDelete(response);
-    setDeleteResponseOpen(true);
-  };
+    setResponseToDelete(response)
+    setDeleteResponseOpen(true)
+  }
 
   const handleResponseFormSuccess = () => {
-    loadAllResponses();
-    loadCategories();
-  };
+    loadAllResponses()
+    loadCategories()
+  }
 
   const handleDeleteResponseSuccess = () => {
-    loadAllResponses();
-    loadCategories();
-  };
+    loadAllResponses()
+    loadCategories()
+  }
 
   if (loading) {
     return (
@@ -313,13 +327,14 @@ export default function HomePage() {
           <p className="mt-2 text-muted-foreground">Loading...</p>
         </div>
       </div>
-    );
+    )
   }
 
-  const filteredCategories = selectedTopicId === "all"
-    ? categories
-    : categories.filter(c => c.topic_id === selectedTopicId);
-  const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
+  const filteredCategories =
+    selectedTopicId === 'all'
+      ? categories
+      : categories.filter((c) => c.topic_id === selectedTopicId)
+  const selectedCategory = categories.find((c) => c.id === selectedCategoryId)
 
   return (
     <SidebarProvider>
@@ -327,9 +342,12 @@ export default function HomePage() {
         topics={topics}
         selectedTopicId={selectedTopicId}
         onTopicSelect={(id) => {
-          setSelectedTopicId(id);
-          const filtered = id === "all" ? categories : categories.filter(c => c.topic_id === id);
-          setSelectedCategoryId(filtered[0]?.id || "");
+          setSelectedTopicId(id)
+          const filtered =
+            id === 'all'
+              ? categories
+              : categories.filter((c) => c.topic_id === id)
+          setSelectedCategoryId(filtered[0]?.id || '')
         }}
         onAddTopic={handleAddTopic}
         onEditTopic={handleEditTopic}
@@ -423,7 +441,8 @@ export default function HomePage() {
                   {topics.length === 0 ? (
                     <>
                       <p className="text-muted-foreground mb-6">
-                        No topics yet. Create your first topic to start organizing your categories and responses.
+                        No topics yet. Create your first topic to start
+                        organizing your categories and responses.
                       </p>
                       <Button onClick={handleAddTopic} size="lg">
                         <Plus className="h-5 w-5 mr-2" />
@@ -435,7 +454,7 @@ export default function HomePage() {
                       <p className="text-muted-foreground mb-6">
                         {filteredCategories.length === 0
                           ? "This topic doesn't have any categories yet. Create your first category to get started."
-                          : "Select a category from the sidebar to view its responses."}
+                          : 'Select a category from the sidebar to view its responses.'}
                       </p>
                       {filteredCategories.length === 0 && (
                         <Button onClick={handleAddCategory} size="lg">
@@ -500,5 +519,5 @@ export default function HomePage() {
         onSuccess={handleDeleteResponseSuccess}
       />
     </SidebarProvider>
-  );
+  )
 }
