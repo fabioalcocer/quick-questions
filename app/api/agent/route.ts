@@ -1,44 +1,33 @@
-import { google } from '@ai-sdk/google'
-import { UIMessage, convertToModelMessages, streamText } from 'ai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import {
+  LanguageModel,
+  UIMessage,
+  convertToModelMessages,
+  streamText,
+} from 'ai'
 import { NextRequest, NextResponse } from 'next/server'
 
-const models = ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite']
+const openrouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY || '',
+})
 
 export async function POST(req: NextRequest) {
   try {
     const { messages }: { messages: UIMessage[] } = await req.json()
 
-    if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json(
-        { error: 'Messages are required' },
-        { status: 400 },
-      )
+    try {
+      const model = openrouter('openrouter/free')
+      const result = streamText({
+        model: model as unknown as LanguageModel,
+        system:
+          'You are an expert Senior Customer Support Specialist for Airtm. Your goal is to assist users with a comprehensive range of inquiries, including Account Management, Verification (KYC), P2P Transactions, Internal Sends, Cryptocurrency operations, and the Airtm Virtual Card.',
+        messages: await convertToModelMessages(messages),
+      })
+      return result.toUIMessageStreamResponse()
+    } catch (error) {
+      console.warn('Model failed:', error)
+      return NextResponse.json({ error: 'Model failed' }, { status: 500 })
     }
-
-    let lastError: any = null
-
-    for (const modelName of models) {
-      try {
-        const model = google(modelName)
-        const result = streamText({
-          model,
-          system:
-            'You are an expert Senior Customer Support Specialist for Airtm. Your goal is to assist users with a comprehensive range of inquiries, including Account Management, Verification (KYC), P2P Transactions, Internal Sends, Cryptocurrency operations, and the Airtm Virtual Card.',
-          prompt: convertToModelMessages(messages),
-        })
-        return result.toUIMessageStreamResponse()
-      } catch (error) {
-        console.warn(`Model ${modelName} failed:`, error)
-        lastError = error
-      }
-    }
-
-    // If all models failed
-    console.error('All AI models failed:', lastError)
-    return NextResponse.json(
-      { error: 'All AI models failed to respond' },
-      { status: 500 },
-    )
   } catch (error) {
     console.error('AI API error:', error)
     return NextResponse.json(
