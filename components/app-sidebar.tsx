@@ -1,13 +1,13 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from '@/components/ui/card'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Sidebar,
   SidebarContent,
@@ -20,14 +20,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
+} from '@/components/ui/sidebar'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 import {
   DndContext,
   type DragEndEvent,
@@ -35,13 +35,13 @@ import {
   closestCenter,
   useSensor,
   useSensors,
-} from "@dnd-kit/core";
+} from '@dnd-kit/core'
 import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import {
   Edit,
   GripVertical,
@@ -51,39 +51,39 @@ import {
   SparklesIcon,
   StickyNote,
   Trash2,
-} from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
-import { Input } from "./ui/input";
-import { useSidebar } from "./ui/sidebar";
+} from 'lucide-react'
+import Link from 'next/link'
+import { useState } from 'react'
+import { Input } from './ui/input'
+import { useSidebar } from './ui/sidebar'
 
 interface Category {
-  id: string;
-  title: string;
-  description: string;
-  responseCount?: number;
-  topic_id?: string;
+  id: string
+  title: string
+  description: string
+  responseCount?: number
+  topic_id?: string
 }
 
 interface AppSidebarProps {
-  categories: Category[];
-  selectedCategoryId?: string;
-  onCategorySelect: (categoryId: string) => void;
-  onAddCategory: () => void;
-  onEditCategory: (category: Category) => void;
-  onDeleteCategory: (category: Category) => void;
-  onCategoryReorder: (reorderedCategories: Category[]) => void;
-  reorderedCategoryIds: string[];
+  categories: Category[]
+  selectedCategoryId?: string
+  onCategorySelect: (categoryId: string) => void
+  onAddCategory: () => void
+  onEditCategory: (category: Category) => void
+  onDeleteCategory: (category: Category) => void
+  onCategoryReorder: (reorderedCategories: Category[]) => void
+  reorderedCategoryIds: string[]
 }
 
 interface SortableCategoryCardProps {
-  category: Category;
-  selectedCategoryId?: string;
-  onCategorySelect: (categoryId: string) => void;
-  onEditCategory: (category: Category) => void;
-  onDeleteCategory: (category: Category) => void;
-  isDragDisabled: boolean;
-  isReordered: boolean;
+  category: Category
+  selectedCategoryId?: string
+  onCategorySelect: (categoryId: string) => void
+  onEditCategory: (category: Category) => void
+  onDeleteCategory: (category: Category) => void
+  isDragDisabled: boolean
+  isReordered: boolean
 }
 
 function SortableCategoryCard({
@@ -105,13 +105,13 @@ function SortableCategoryCard({
   } = useSortable({
     id: category.id,
     disabled: isDragDisabled,
-  });
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-  };
+  }
 
   return (
     <SidebarMenuItem ref={setNodeRef} style={style}>
@@ -119,13 +119,15 @@ function SortableCategoryCard({
         <Tooltip delayDuration={400}>
           <TooltipTrigger asChild>
             <Card
-              className={`group/card cursor-pointer transition-all duration-300 rounded-md py-0 hover:bg-sidebar-accent ${selectedCategoryId === category.id
-                ? "bg-sidebar-accent border-sidebar-primary"
-                : ""
-                } ${isDragging ? "shadow-lg" : ""} ${isReordered
-                  ? "animate-pulse bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/40 dark:via-teal-950/40 dark:to-cyan-950/40 border-emerald-600 dark:border-emerald-700"
-                  : ""
-                }`}
+              className={`group/card cursor-pointer transition-all duration-300 rounded-md py-0 hover:bg-sidebar-accent ${
+                selectedCategoryId === category.id
+                  ? 'bg-sidebar-accent border-sidebar-primary'
+                  : ''
+              } ${isDragging ? 'shadow-lg' : ''} ${
+                isReordered
+                  ? 'animate-pulse bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/40 dark:via-teal-950/40 dark:to-cyan-950/40 border-emerald-600 dark:border-emerald-700'
+                  : ''
+              }`}
               onClick={() => onCategorySelect(category.id)}
             >
               <CardHeader className="p-3 relative">
@@ -167,8 +169,8 @@ function SortableCategoryCard({
                         variant="ghost"
                         className="h-6 w-6 p-0 hover:bg-transparent group-hover/card:opacity-100 opacity-0 transition-all duration-200 translate-x-2 group-hover/card:translate-x-0 flex-shrink-0"
                         onClick={(e) => {
-                          e.stopPropagation();
-                          onEditCategory(category);
+                          e.stopPropagation()
+                          onEditCategory(category)
                         }}
                       >
                         <Edit className="h-3 w-3" />
@@ -179,8 +181,8 @@ function SortableCategoryCard({
                         variant="ghost"
                         className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/40 group-hover/card:opacity-100 opacity-0 transition-all duration-200 translate-x-2 group-hover/card:translate-x-0 flex-shrink-0"
                         onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteCategory(category);
+                          e.stopPropagation()
+                          onDeleteCategory(category)
                         }}
                       >
                         <Trash2 className="h-3 w-3" />
@@ -205,7 +207,7 @@ function SortableCategoryCard({
         </Tooltip>
       </TooltipProvider>
     </SidebarMenuItem>
-  );
+  )
 }
 
 export function AppSidebar({
@@ -218,8 +220,8 @@ export function AppSidebar({
   onCategoryReorder,
   reorderedCategoryIds,
 }: AppSidebarProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const { open } = useSidebar();
+  const [searchQuery, setSearchQuery] = useState('')
+  const { open } = useSidebar()
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -227,41 +229,41 @@ export function AppSidebar({
         distance: 5,
       },
     }),
-  );
+  )
 
   const filteredCategories = categories.filter((category) => {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.toLowerCase()
     return (
       category.title.toLowerCase().includes(query) ||
       category.description.toLowerCase().includes(query)
-    );
-  });
+    )
+  })
 
-  const isDragDisabled = searchQuery.length > 0;
+  const isDragDisabled = searchQuery.length > 0
 
   function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
+    const { active, over } = event
 
-    if (!over || active.id === over.id) return;
+    if (!over || active.id === over.id) return
 
-    const oldIndex = categories.findIndex((cat) => cat.id === active.id);
-    const newIndex = categories.findIndex((cat) => cat.id === over.id);
+    const oldIndex = categories.findIndex((cat) => cat.id === active.id)
+    const newIndex = categories.findIndex((cat) => cat.id === over.id)
 
-    if (oldIndex === -1 || newIndex === -1) return;
+    if (oldIndex === -1 || newIndex === -1) return
 
-    const reorderedCategories = [...categories];
-    const [movedCategory] = reorderedCategories.splice(oldIndex, 1);
-    reorderedCategories.splice(newIndex, 0, movedCategory);
+    const reorderedCategories = [...categories]
+    const [movedCategory] = reorderedCategories.splice(oldIndex, 1)
+    reorderedCategories.splice(newIndex, 0, movedCategory)
 
-    onCategoryReorder(reorderedCategories);
+    onCategoryReorder(reorderedCategories)
   }
 
   return (
     <Sidebar
       collapsible="none"
       className={cn(
-        "border-r border-sidebar-border w-[300px] bg-sidebar/50 transition-all duration-300 ease-in-out",
-        !open && "w-0 border-r-0 opacity-0 pointer-events-none -ml-[300px]"
+        'border-r border-sidebar-border w-[300px] bg-sidebar/50 transition-all duration-300 ease-in-out',
+        !open && 'w-0 border-r-0 opacity-0 pointer-events-none -ml-[300px]',
       )}
     >
       <SidebarHeader className="border-b border-sidebar-border">
@@ -322,22 +324,22 @@ export function AppSidebar({
 
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
-          <SidebarMenuItem className="flex flex-col items-start gap-1">
+          <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton asChild className="duration-300 transition-all">
               <Link href="/notes">
                 <StickyNote className="min-w-5" />
                 <span>Notes</span>
               </Link>
             </SidebarMenuButton>
-            {/* <SidebarMenuButton asChild>
-							<Link href="/agent">
-								<SparklesIcon className="min-w-5" />
-								<span>Agent AI</span>
-							</Link>
-						</SidebarMenuButton> */}
+            <SidebarMenuButton asChild>
+              <Link href="/agent">
+                <SparklesIcon className="min-w-5" />
+                <span>Agent AI</span>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }
