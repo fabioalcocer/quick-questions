@@ -154,9 +154,9 @@ export function AccountSwitcher() {
 
   if (!activeAccount) {
     return (
-      <div className="flex h-12 items-center gap-3 rounded-lg border border-sidebar-border bg-sidebar-accent/40 px-3">
+      <div className="flex h-9 w-[min(16rem,46vw)] items-center gap-2 rounded-lg border border-border/80 bg-muted/40 px-2.5 py-1">
         <Loader2 className="size-4 animate-spin text-muted-foreground" />
-        <span className="text-sm text-muted-foreground">
+        <span className="truncate text-xs text-muted-foreground">
           Loading account...
         </span>
       </div>
@@ -168,32 +168,32 @@ export function AccountSwitcher() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="group flex w-full items-center gap-3 rounded-lg border border-sidebar-border bg-sidebar-accent/35 p-2 text-left transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+          className="group flex h-9 w-[min(16rem,46vw)] items-center gap-2 rounded-lg border border-border/80 bg-muted/35 px-2.5 py-1 text-left transition-colors hover:border-border hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <div className="relative">
-            <Avatar className="size-9 border border-sidebar-border bg-background">
+            <Avatar className="size-7 border border-border bg-background">
               <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
                 {getAccountInitials(activeAccount.email)}
               </AvatarFallback>
             </Avatar>
-            <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-sidebar bg-emerald-500" />
+            <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-background bg-emerald-500" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-sidebar-foreground">
+            <p className="truncate text-[13px] font-semibold leading-tight text-foreground">
               {activeAccount.email.split('@')[0]}
             </p>
-            <p className="truncate text-xs text-muted-foreground">
+            <p className="truncate text-[11px] leading-tight text-muted-foreground">
               {activeAccount.email}
             </p>
           </div>
-          <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-sidebar-foreground" />
+          <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
           <span className="sr-only">Open account menu</span>
         </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        side="top"
-        align="start"
+        side="bottom"
+        align="end"
         sideOffset={8}
         className="w-[276px] p-1.5"
       >

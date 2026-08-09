@@ -1,6 +1,5 @@
 'use client'
 
-import { AccountSwitcher } from '@/components/account-switcher'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -264,7 +263,7 @@ export function AppSidebar({
       collapsible="none"
       className={cn(
         'border-r border-sidebar-border w-[300px] bg-sidebar/50 transition-all duration-300 ease-in-out',
-        !open && 'w-0 border-r-0 opacity-0 pointer-events-none -ml-[300px]',
+        !open && 'w-0 border-r-0 opacity-0 pointer-events-none',
       )}
     >
       <SidebarHeader className="border-b border-sidebar-border">
@@ -340,7 +339,6 @@ export function AppSidebar({
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <AccountSwitcher />
       </SidebarFooter>
     </Sidebar>
   )

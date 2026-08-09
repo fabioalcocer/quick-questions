@@ -1,5 +1,6 @@
 'use client'
 
+import { AccountSwitcher } from '@/components/account-switcher'
 import { AppSidebar } from '@/components/app-sidebar'
 import { CategoryFormSheet } from '@/components/category-form-sheet'
 import { DeleteCategoryDialog } from '@/components/delete-category-dialog'
@@ -365,26 +366,35 @@ export default function HomePage() {
         reorderedCategoryIds={reorderedCategoryIds}
       />
 
-      <SidebarInset>
-        <main className="flex-1 flex flex-col max-h-[100dvh] overflow-y-auto">
+      <SidebarInset className="min-w-0">
+        <main className="flex min-w-0 flex-1 flex-col max-h-[100dvh] overflow-y-auto">
+          <header className="sticky top-0 z-20 shrink-0 border-b border-border/80 bg-background/95 px-4 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6">
+            <div className="flex min-h-9 w-full items-center justify-between gap-3">
+              <SidebarTrigger className="-ml-1 shrink-0" />
+
+              <div className="flex min-w-0 items-center gap-2">
+                <ModeToggle className="shrink-0 border-border/70 bg-muted/35 shadow-none hover:bg-muted" />
+                {selectedCategory ? (
+                  <Button
+                    onClick={handleAddResponse}
+                    className="size-9 shrink-0 p-0 shadow-sm sm:w-auto sm:px-4"
+                    aria-label="Create Response"
+                  >
+                    <Plus className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Create Response</span>
+                  </Button>
+                ) : null}
+                <div
+                  className="mx-0.5 hidden h-6 w-px shrink-0 bg-border sm:block"
+                  aria-hidden="true"
+                />
+                <AccountSwitcher />
+              </div>
+            </div>
+          </header>
+
           {selectedCategory ? (
             <>
-              <div className="border-b border-border p-6 py-3">
-                <div className="container mx-auto flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <SidebarTrigger className="-ml-1" />
-                    <div className="flex-1" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ModeToggle />
-                    <Button onClick={handleAddResponse}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Response
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
               <div className="p-6 container mx-auto">
                 <div className="">
                   <h1 className="text-2xl font-semibold text-foreground">
@@ -425,17 +435,6 @@ export default function HomePage() {
             </>
           ) : (
             <div className="flex-1 flex flex-col">
-              <div className="border-b border-border p-6 py-3">
-                <div className="container mx-auto flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <SidebarTrigger className="-ml-1" />
-                    <div className="flex-1" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ModeToggle />
-                  </div>
-                </div>
-              </div>
               <div className="flex-1 flex items-center justify-center p-6">
                 <div className="text-center max-w-md">
                   {topics.length === 0 ? (
