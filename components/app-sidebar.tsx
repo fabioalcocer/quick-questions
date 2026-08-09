@@ -1,5 +1,6 @@
 'use client'
 
+import { AccountSwitcher } from '@/components/account-switcher'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -339,6 +340,7 @@ export function AppSidebar({
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <AccountSwitcher />
       </SidebarFooter>
     </Sidebar>
   )
