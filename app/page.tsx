@@ -6,9 +6,12 @@ import { CategoryFormSheet } from '@/components/category-form-sheet'
 import { DeleteCategoryDialog } from '@/components/delete-category-dialog'
 import { DeleteResponseDialog } from '@/components/delete-response-dialog'
 import { DeleteTopicDialog } from '@/components/delete-topic-dialog'
+import { GlobalSearch } from '@/components/global-search'
 import { ModeToggle } from '@/components/mode-toggle'
+import { RephraseDialog } from '@/components/rephrase-dialog'
 import { ResponseCard } from '@/components/response-card'
 import { ResponseFormSheet } from '@/components/response-form-sheet'
+import { ResponseListRow } from '@/components/response-list-row'
 import { TopicFormSheet } from '@/components/topic-form-sheet'
 import { TopicsSidebar } from '@/components/topics-sidebar'
 import { Button } from '@/components/ui/button'
@@ -17,42 +20,27 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
+import type { Category, QuickResponse, Topic } from '@/lib/quick-responses'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, Plus } from 'lucide-react'
+import { Grid2X2, List, Loader2, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
-interface Topic {
-  id: string
-  title: string
-  description: string
-}
+type ViewMode = 'cards' | 'compact'
 
-interface Category {
-  id: string
-  title: string
-  description: string
-  responseCount?: number
-  topic_id?: string
-}
-
-export interface Response {
-  id: string
-  text: string
-  language: string
-  category_id: string
-}
+const VIEW_MODE_STORAGE_KEY = 'quick-responses:view-mode:v1'
 
 export default function HomePage() {
   const [topics, setTopics] = useState<Topic[]>([])
   const [selectedTopicId, setSelectedTopicId] = useState<string>('all')
   const [categories, setCategories] = useState<Category[]>([])
-  const [allResponses, setAllResponses] = useState<Response[]>([])
-  const [filteredResponses, setFilteredResponses] = useState<Response[]>([])
+  const [allResponses, setAllResponses] = useState<QuickResponse[]>([])
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null)
   const [reorderedCategoryIds, setReorderedCategoryIds] = useState<string[]>([])
+  const [viewMode, setViewMode] = useState<ViewMode>('cards')
 
   // Topic modals
   const [topicFormOpen, setTopicFormOpen] = useState(false)
@@ -70,11 +58,14 @@ export default function HomePage() {
 
   // Response modals
   const [responseFormOpen, setResponseFormOpen] = useState(false)
-  const [editingResponse, setEditingResponse] = useState<Response | null>(null)
-  const [deleteResponseOpen, setDeleteResponseOpen] = useState(false)
-  const [responseToDelete, setResponseToDelete] = useState<Response | null>(
+  const [editingResponse, setEditingResponse] = useState<QuickResponse | null>(
     null,
   )
+  const [deleteResponseOpen, setDeleteResponseOpen] = useState(false)
+  const [responseToDelete, setResponseToDelete] =
+    useState<QuickResponse | null>(null)
+  const [responseToRephrase, setResponseToRephrase] =
+    useState<QuickResponse | null>(null)
 
   const router = useRouter()
   const supabase = createClient()
@@ -84,18 +75,23 @@ export default function HomePage() {
   }, [])
 
   useEffect(() => {
+    try {
+      const savedMode = window.localStorage.getItem(VIEW_MODE_STORAGE_KEY)
+      if (savedMode === 'cards' || savedMode === 'compact') {
+        setViewMode(savedMode)
+      }
+    } catch {
+      // Storage access can be unavailable in privacy-restricted browsers.
+    }
+  }, [])
+
+  useEffect(() => {
     if (user) {
       loadTopics()
       loadCategories()
       loadAllResponses()
     }
   }, [user])
-
-  useEffect(() => {
-    if (selectedCategoryId && allResponses.length > 0) {
-      filterResponsesByCategory(selectedCategoryId)
-    }
-  }, [selectedCategoryId, allResponses])
 
   const checkUser = async () => {
     const {
@@ -230,13 +226,6 @@ export default function HomePage() {
     }
   }
 
-  const filterResponsesByCategory = (categoryId: string) => {
-    const filtered = allResponses.filter(
-      (response) => response.category_id === categoryId,
-    )
-    setFilteredResponses(filtered)
-  }
-
   // Topic handlers
   const handleAddTopic = () => {
     setEditingTopic(null)
@@ -290,7 +279,6 @@ export default function HomePage() {
     loadAllResponses()
     if (selectedCategoryId === categoryToDelete?.id) {
       setSelectedCategoryId('')
-      setFilteredResponses([])
     }
   }
 
@@ -300,12 +288,12 @@ export default function HomePage() {
     setResponseFormOpen(true)
   }
 
-  const handleEditResponse = (response: Response) => {
+  const handleEditResponse = (response: QuickResponse) => {
     setEditingResponse(response)
     setResponseFormOpen(true)
   }
 
-  const handleDeleteResponse = (response: Response) => {
+  const handleDeleteResponse = (response: QuickResponse) => {
     setResponseToDelete(response)
     setDeleteResponseOpen(true)
   }
@@ -318,6 +306,25 @@ export default function HomePage() {
   const handleDeleteResponseSuccess = () => {
     loadAllResponses()
     loadCategories()
+  }
+
+  const handleCopyResponse = async (response: QuickResponse) => {
+    try {
+      await navigator.clipboard.writeText(response.text)
+      toast.success('Response copied to clipboard!')
+    } catch (error) {
+      toast.error('Unable to copy this response.')
+      throw error
+    }
+  }
+
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode)
+    try {
+      window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode)
+    } catch {
+      // Keep the in-memory preference when storage is unavailable.
+    }
   }
 
   if (loading) {
@@ -335,6 +342,11 @@ export default function HomePage() {
     selectedTopicId === 'all'
       ? categories
       : categories.filter((c) => c.topic_id === selectedTopicId)
+  const filteredResponses = selectedCategoryId
+    ? allResponses.filter(
+        (response) => response.category_id === selectedCategoryId,
+      )
+    : []
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId)
 
   return (
@@ -370,9 +382,17 @@ export default function HomePage() {
         <main className="flex min-w-0 flex-1 flex-col max-h-[100dvh] overflow-y-auto">
           <header className="sticky top-0 z-20 shrink-0 border-b border-border/80 bg-background/95 px-4 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6">
             <div className="flex min-h-9 w-full items-center justify-between gap-3">
-              <SidebarTrigger className="-ml-1 shrink-0" />
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <SidebarTrigger className="-ml-1 shrink-0" />
+                <GlobalSearch
+                  categories={categories}
+                  responses={allResponses}
+                  topics={topics}
+                  onCopy={handleCopyResponse}
+                />
+              </div>
 
-              <div className="flex min-w-0 items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2">
                 <ModeToggle className="shrink-0 border-border/70 bg-muted/35 shadow-none hover:bg-muted" />
                 {selectedCategory ? (
                   <Button
@@ -396,26 +416,72 @@ export default function HomePage() {
           {selectedCategory ? (
             <>
               <div className="p-6 container mx-auto">
-                <div className="">
-                  <h1 className="text-2xl font-semibold text-foreground">
-                    {selectedCategory.title}
-                  </h1>
-                  <p className="text-muted-foreground mt-1">
-                    {selectedCategory.description}
-                  </p>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h1 className="text-2xl font-semibold text-foreground">
+                      {selectedCategory.title}
+                    </h1>
+                    <p className="mt-1 text-muted-foreground">
+                      {selectedCategory.description}
+                    </p>
+                  </div>
+                  <fieldset className="flex h-9 shrink-0 items-center rounded-md border border-border/80 bg-muted/25 p-0.5">
+                    <legend className="sr-only">Response view</legend>
+                    <Button
+                      aria-label="Card view"
+                      aria-pressed={viewMode === 'cards'}
+                      className="size-8 p-0"
+                      onClick={() => handleViewModeChange('cards')}
+                      size="icon"
+                      title="Card view"
+                      variant={viewMode === 'cards' ? 'secondary' : 'ghost'}
+                    >
+                      <Grid2X2 className="size-4" />
+                    </Button>
+                    <Button
+                      aria-label="Compact view"
+                      aria-pressed={viewMode === 'compact'}
+                      className="size-8 p-0"
+                      onClick={() => handleViewModeChange('compact')}
+                      size="icon"
+                      title="Compact view"
+                      variant={viewMode === 'compact' ? 'secondary' : 'ghost'}
+                    >
+                      <List className="size-4" />
+                    </Button>
+                  </fieldset>
                 </div>
 
                 <div className="flex-1 mt-5">
                   {filteredResponses.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {filteredResponses.map((response) => (
-                        <ResponseCard
-                          key={response.id}
-                          response={response}
-                          onEdit={handleEditResponse}
-                          onDelete={handleDeleteResponse}
-                        />
-                      ))}
+                    <div
+                      className={
+                        viewMode === 'cards'
+                          ? 'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'
+                          : 'space-y-2'
+                      }
+                    >
+                      {filteredResponses.map((response) =>
+                        viewMode === 'cards' ? (
+                          <ResponseCard
+                            key={response.id}
+                            response={response}
+                            onCopy={handleCopyResponse}
+                            onDelete={handleDeleteResponse}
+                            onEdit={handleEditResponse}
+                            onRephrase={setResponseToRephrase}
+                          />
+                        ) : (
+                          <ResponseListRow
+                            key={response.id}
+                            response={response}
+                            onCopy={handleCopyResponse}
+                            onDelete={handleDeleteResponse}
+                            onEdit={handleEditResponse}
+                            onRephrase={setResponseToRephrase}
+                          />
+                        ),
+                      )}
                     </div>
                   ) : (
                     <div className="flex items-center justify-center h-64">
@@ -516,6 +582,11 @@ export default function HomePage() {
         onClose={() => setDeleteResponseOpen(false)}
         response={responseToDelete}
         onSuccess={handleDeleteResponseSuccess}
+      />
+
+      <RephraseDialog
+        response={responseToRephrase}
+        onClose={() => setResponseToRephrase(null)}
       />
     </SidebarProvider>
   )

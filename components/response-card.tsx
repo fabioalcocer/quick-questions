@@ -1,123 +1,61 @@
-"use client";
+'use client'
 
-import type { Response } from "@/app/page";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Check, Copy, Edit, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { ResponseActions } from '@/components/response-actions'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { useCopyResponse } from '@/hooks/use-copy-response'
+import type { QuickResponse } from '@/lib/quick-responses'
+import { getLanguageBadgeClassName } from '@/lib/response-language'
 
 interface ResponseCardProps {
-	response: Response;
-	onEdit: (response: Response) => void;
-	onDelete: (response: Response) => void;
+  response: QuickResponse
+  onCopy: (response: QuickResponse) => Promise<void>
+  onDelete: (response: QuickResponse) => void
+  onEdit: (response: QuickResponse) => void
+  onRephrase: (response: QuickResponse) => void
 }
 
 export function ResponseCard({
-	response,
-	onEdit,
-	onDelete,
+  response,
+  onCopy,
+  onDelete,
+  onEdit,
+  onRephrase,
 }: ResponseCardProps) {
-	const [copied, setCopied] = useState(false);
+  const { copied, copyResponse } = useCopyResponse(response, onCopy)
 
-	const handleCopy = async () => {
-		await navigator.clipboard.writeText(response.text);
-		setCopied(true);
-		setTimeout(() => setCopied(false), 2000);
-
-		toast.success("Response copied to clipboard!");
-	};
-
-	const getLanguageColor = (language: string) => {
-		switch (language.toLowerCase()) {
-			case "spanish":
-				return "bg-red-50 dark:bg-red-600 dark:text-white dark:border-red-700 text-red-700 hover:bg-red-100 border-red-200 shadow-sm";
-			case "english":
-				return "bg-blue-50 dark:bg-blue-500 dark:text-white dark:border-blue-600 text-blue-700 hover:bg-blue-100 border-blue-200 shadow-sm";
-			case "portuguese":
-				return "bg-green-50 dark:bg-green-700 dark:text-white dark:border-green-700 text-green-700 hover:bg-green-100 border-green-200 shadow-sm";
-			default:
-				return "bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200 shadow-sm";
-		}
-	};
-
-	const getLanguageFlag = (language: string) => {
-		switch (language.toLowerCase()) {
-			case "spanish":
-				return "🇪🇸";
-			case "english":
-				return "🇺🇸";
-			case "portuguese":
-				return "🇵🇹";
-			default:
-				return "🌐";
-		}
-	};
-
-	return (
-		<Card
-			className="group py-0 pt-5 gap-0 rounded-md dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-800 dark:border-zinc-800 dark:hover:border-zinc-700 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-blue-100 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer hover:border-blue-200 active:scale-[0.98]"
-			onClick={handleCopy}
-		>
-			<CardHeader className="pb-4">
-				<div className="flex items-start justify-between">
-					<Badge
-						variant="secondary"
-						className={`${getLanguageColor(response.language)} cursor-default font-medium px-3 py-1.5 text-sm transition-all duration-200`}
-					>
-						<span className="mr-2 text-base">
-							{getLanguageFlag(response.language)}
-						</span>
-						{response.language}
-					</Badge>
-					<div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
-						<Button
-							size="sm"
-							variant="ghost"
-							className="h-9 w-9 p-0 hover:bg-primary/80 active:scale-[0.92] hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-							onClick={(e) => {
-								e.stopPropagation();
-								handleCopy();
-							}}
-							disabled={copied}
-						>
-							{copied ? (
-								<Check className="h-4 w-4 text-primary" />
-							) : (
-								<Copy className="h-4 w-4" />
-							)}
-						</Button>
-						<Button
-							size="sm"
-							variant="ghost"
-							className="h-9 w-9 p-0 hover:bg-primary/80 active:scale-[0.92] hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-							onClick={(e) => {
-								e.stopPropagation();
-								onEdit(response);
-							}}
-						>
-							<Edit className="h-4 w-4" />
-						</Button>
-						<Button
-							size="sm"
-							variant="ghost"
-							className="h-9 w-9 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-							onClick={(e) => {
-								e.stopPropagation();
-								onDelete(response);
-							}}
-						>
-							<Trash2 className="h-4 w-4" />
-						</Button>
-					</div>
-				</div>
-			</CardHeader>
-			<CardContent className="pt-0 pb-6">
-				<p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap font-medium">
-					{response.text}
-				</p>
-			</CardContent>
-		</Card>
-	);
+  return (
+    <Card
+      className="group cursor-pointer gap-0 rounded-md border-2 border-blue-100 bg-gradient-to-br from-slate-50 to-blue-50 py-0 pt-5 shadow-sm transition-all duration-300 hover:border-blue-200 hover:shadow-md active:scale-[0.98] dark:border-zinc-800 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-800 dark:hover:border-zinc-700"
+      onClick={() => {
+        copyResponse().catch(() => null)
+      }}
+    >
+      <CardHeader className="pb-4">
+        <div className="flex items-start justify-between gap-2">
+          <Badge
+            className={`${getLanguageBadgeClassName(response.language)} cursor-default px-3 py-1.5 text-sm font-medium shadow-sm`}
+            variant="secondary"
+          >
+            {response.language}
+          </Badge>
+          <div className="transition-opacity sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
+            <ResponseActions
+              copied={copied}
+              response={response}
+              onCopy={copyResponse}
+              onDelete={onDelete}
+              onEdit={onEdit}
+              onRephrase={onRephrase}
+            />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pb-6 pt-0">
+        <p className="whitespace-pre-wrap text-sm font-medium leading-relaxed text-foreground">
+          {response.text}
+        </p>
+      </CardContent>
+    </Card>
+  )
 }
