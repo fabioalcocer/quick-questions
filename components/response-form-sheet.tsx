@@ -206,7 +206,7 @@ export function ResponseFormSheet({
 							type="button"
 							variant="outline"
 							onClick={handleClose}
-							className="hover:bg-gray-100 hover:text-black"
+							className="hover:bg-accent hover:text-accent-foreground"
 						>
 							Cancel
 						</Button>

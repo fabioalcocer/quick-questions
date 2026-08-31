@@ -211,7 +211,7 @@ export function NoteFormSheet({
 							type="button"
 							variant="outline"
 							onClick={handleClose}
-							className="flex-1 hover:text-black hover:bg-gray-100"
+							className="flex-1 hover:bg-accent hover:text-accent-foreground"
 						>
 							Cancel
 						</Button>

@@ -1,6 +1,7 @@
 'use client'
 
 import { ResponseActions } from '@/components/response-actions'
+import { ResponseUsage } from '@/components/response-usage'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { useCopyResponse } from '@/hooks/use-copy-response'
@@ -12,6 +13,8 @@ interface ResponseCardProps {
   onCopy: (response: QuickResponse) => Promise<void>
   onDelete: (response: QuickResponse) => void
   onEdit: (response: QuickResponse) => void
+  onTogglePin: (response: QuickResponse) => void
+  isPinPending?: boolean
   onRephrase: (response: QuickResponse) => void
 }
 
@@ -20,25 +23,30 @@ export function ResponseCard({
   onCopy,
   onDelete,
   onEdit,
+  onTogglePin,
+  isPinPending,
   onRephrase,
 }: ResponseCardProps) {
   const { copied, copyResponse } = useCopyResponse(response, onCopy)
 
   return (
     <Card
-      className="group cursor-pointer gap-0 rounded-md border-2 border-blue-100 bg-gradient-to-br from-slate-50 to-blue-50 py-0 pt-5 shadow-sm transition-all duration-300 hover:border-blue-200 hover:shadow-md active:scale-[0.98] dark:border-zinc-800 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-800 dark:hover:border-zinc-700"
+      className="group cursor-pointer gap-0 rounded-md border border-border/90 bg-card py-0 pt-5 shadow-xs transition-[border-color,box-shadow,transform] duration-200 hover:border-primary/35 hover:shadow-sm active:scale-[0.99]"
       onClick={() => {
         copyResponse().catch(() => null)
       }}
     >
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-2">
-          <Badge
-            className={`${getLanguageBadgeClassName(response.language)} cursor-default px-3 py-1.5 text-sm font-medium shadow-sm`}
-            variant="secondary"
-          >
-            {response.language}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge
+              className={`${getLanguageBadgeClassName(response.language)} cursor-default px-3 py-1.5 text-sm font-medium shadow-sm`}
+              variant="secondary"
+            >
+              {response.language}
+            </Badge>
+            <ResponseUsage usageCount={response.usage_count} />
+          </div>
           <div className="transition-opacity sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
             <ResponseActions
               copied={copied}
@@ -46,6 +54,8 @@ export function ResponseCard({
               onCopy={copyResponse}
               onDelete={onDelete}
               onEdit={onEdit}
+              onTogglePin={onTogglePin}
+              isPinPending={isPinPending}
               onRephrase={onRephrase}
             />
           </div>

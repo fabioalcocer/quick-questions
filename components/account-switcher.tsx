@@ -176,7 +176,7 @@ export function AccountSwitcher() {
                 {getAccountInitials(activeAccount.email)}
               </AvatarFallback>
             </Avatar>
-            <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-background bg-emerald-500" />
+            <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-background bg-success" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-semibold leading-tight text-foreground">
@@ -226,7 +226,7 @@ export function AccountSwitcher() {
               {isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : isActive ? (
-                <Check className="size-4 text-emerald-500" />
+                <Check className="size-4 text-success" />
               ) : null}
             </DropdownMenuItem>
           )

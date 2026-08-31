@@ -17,4 +17,6 @@ export interface QuickResponse {
   text: string
   language: string
   category_id: string
+  is_pinned: boolean
+  usage_count: number
 }

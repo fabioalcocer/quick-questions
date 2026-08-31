@@ -12,7 +12,7 @@ import {
 import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import type { Category, QuickResponse, Topic } from '@/lib/quick-responses'
 import Fuse, { type FuseResult, type FuseResultMatch } from 'fuse.js'
-import { Copy, Search } from 'lucide-react'
+import { Copy, Pin, Search } from 'lucide-react'
 import { Fragment, useEffect, useMemo, useState } from 'react'
 
 interface SearchEntry {
@@ -164,6 +164,12 @@ function SearchResultItem({
                 text={item.topicTitle}
               />
             </span>
+          ) : null}
+          {item.response.is_pinned ? (
+            <Pin
+              aria-label="Pinned response"
+              className="size-3 fill-current text-primary"
+            />
           ) : null}
         </span>
       </span>

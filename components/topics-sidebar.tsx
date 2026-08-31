@@ -96,7 +96,7 @@ export function TopicsSidebar({
                 placeholder="Search topics..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 border-zinc-200 dark:border-input"
+                className="border-input bg-background/70 pl-10"
               />
             </div>
           </SidebarGroupLabel>

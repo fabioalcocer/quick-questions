@@ -125,7 +125,7 @@ function SortableCategoryCard({
                   : ''
               } ${isDragging ? 'shadow-lg' : ''} ${
                 isReordered
-                  ? 'animate-pulse bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/40 dark:via-teal-950/40 dark:to-cyan-950/40 border-emerald-600 dark:border-emerald-700'
+                  ? 'animate-pulse border-success/60 bg-success/10'
                   : ''
               }`}
               onClick={() => onCategorySelect(category.id)}
@@ -194,7 +194,7 @@ function SortableCategoryCard({
             </Card>
           </TooltipTrigger>
           <TooltipContent
-            className="max-w-[250px] dark:bg-black bg-zinc-50 border-zinc-200 dark:border-zinc-800 rounded-sm"
+            className="max-w-[250px] rounded-sm border-border bg-popover"
             side="right"
           >
             <p className="font-semibold mb-2 dark:text-foreground text-foreground">
@@ -262,7 +262,7 @@ export function AppSidebar({
     <Sidebar
       collapsible="none"
       className={cn(
-        'border-r border-sidebar-border w-[300px] bg-sidebar/50 transition-all duration-300 ease-in-out',
+        'border-r border-sidebar-border w-[300px] bg-sidebar transition-all duration-300 ease-in-out',
         !open && 'w-0 border-r-0 opacity-0 pointer-events-none',
       )}
     >
@@ -283,7 +283,7 @@ export function AppSidebar({
                 placeholder="Search categories......"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 border-zinc-200 dark:border-input"
+                className="border-input bg-background/70 pl-10"
               />
             </div>
           </SidebarGroupLabel>

@@ -16,20 +16,51 @@ import { TopicFormSheet } from '@/components/topic-form-sheet'
 import { TopicsSidebar } from '@/components/topics-sidebar'
 import { Button } from '@/components/ui/button'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import type { Category, QuickResponse, Topic } from '@/lib/quick-responses'
 import { createClient } from '@/lib/supabase/client'
-import { Grid2X2, List, Loader2, Plus } from 'lucide-react'
+import { ArrowDownUp, Grid2X2, List, Loader2, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 type ViewMode = 'cards' | 'compact'
+type ResponseSort = 'default' | 'most-used'
 
 const VIEW_MODE_STORAGE_KEY = 'quick-responses:view-mode:v1'
+const RESPONSE_SORT_STORAGE_KEY = 'quick-responses:response-sort:v1'
+const LANGUAGE_ORDER = { Spanish: 0, English: 1, Portuguese: 2 }
+
+function sortResponses(
+  responses: QuickResponse[],
+  responseSort: ResponseSort = 'default',
+) {
+  return [...responses].sort((a, b) => {
+    if (a.is_pinned !== b.is_pinned) {
+      return Number(b.is_pinned) - Number(a.is_pinned)
+    }
+
+    if (responseSort === 'most-used' && a.usage_count !== b.usage_count) {
+      return b.usage_count - a.usage_count
+    }
+
+    const aOrder =
+      LANGUAGE_ORDER[a.language as keyof typeof LANGUAGE_ORDER] ?? 999
+    const bOrder =
+      LANGUAGE_ORDER[b.language as keyof typeof LANGUAGE_ORDER] ?? 999
+    return aOrder - bOrder
+  })
+}
 
 export default function HomePage() {
   const [topics, setTopics] = useState<Topic[]>([])
@@ -40,7 +71,9 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null)
   const [reorderedCategoryIds, setReorderedCategoryIds] = useState<string[]>([])
+  const [pendingPinIds, setPendingPinIds] = useState<Set<string>>(new Set())
   const [viewMode, setViewMode] = useState<ViewMode>('cards')
+  const [responseSort, setResponseSort] = useState<ResponseSort>('default')
 
   // Topic modals
   const [topicFormOpen, setTopicFormOpen] = useState(false)
@@ -73,6 +106,21 @@ export default function HomePage() {
   useEffect(() => {
     checkUser()
   }, [])
+
+  useEffect(() => {
+    try {
+      const savedSort = window.localStorage.getItem(RESPONSE_SORT_STORAGE_KEY)
+      if (savedSort === 'default' || savedSort === 'most-used') {
+        setResponseSort(savedSort)
+      }
+    } catch {
+      // Storage access can be unavailable in privacy-restricted browsers.
+    }
+  }, [])
+
+  useEffect(() => {
+    setAllResponses((current) => sortResponses(current, responseSort))
+  }, [responseSort])
 
   useEffect(() => {
     try {
@@ -175,16 +223,12 @@ export default function HomePage() {
 
       if (error) throw error
 
-      const languageOrder = { Spanish: 0, English: 1, Portuguese: 2 }
-      const sortedResponses = (data || []).sort((a, b) => {
-        const aOrder =
-          languageOrder[a.language as keyof typeof languageOrder] ?? 999
-        const bOrder =
-          languageOrder[b.language as keyof typeof languageOrder] ?? 999
-        return aOrder - bOrder
-      })
-
-      setAllResponses(sortedResponses)
+      const responses = (data || []).map((response) => ({
+        ...response,
+        is_pinned: response.is_pinned ?? false,
+        usage_count: response.usage_count ?? 0,
+      }))
+      setAllResponses(sortResponses(responses, responseSort))
     } catch (error) {
       console.error('Error loading all responses:', error)
     }
@@ -298,6 +342,55 @@ export default function HomePage() {
     setDeleteResponseOpen(true)
   }
 
+  const handleTogglePinned = async (response: QuickResponse) => {
+    if (pendingPinIds.has(response.id)) {
+      return
+    }
+
+    const isPinned = !response.is_pinned
+    setPendingPinIds((current) => new Set(current).add(response.id))
+    setAllResponses((current) =>
+      sortResponses(
+        current.map((item) =>
+          item.id === response.id ? { ...item, is_pinned: isPinned } : item,
+        ),
+        responseSort,
+      ),
+    )
+
+    try {
+      const { error } = await supabase
+        .from('responses')
+        .update({ is_pinned: isPinned })
+        .eq('id', response.id)
+
+      if (error) {
+        throw error
+      }
+
+      toast.success(isPinned ? 'Response pinned.' : 'Response unpinned.')
+    } catch (error) {
+      console.error('Error updating response pin:', error)
+      setAllResponses((current) =>
+        sortResponses(
+          current.map((item) =>
+            item.id === response.id
+              ? { ...item, is_pinned: response.is_pinned }
+              : item,
+          ),
+          responseSort,
+        ),
+      )
+      toast.error('Unable to update this response pin.')
+    } finally {
+      setPendingPinIds((current) => {
+        const next = new Set(current)
+        next.delete(response.id)
+        return next
+      })
+    }
+  }
+
   const handleResponseFormSuccess = () => {
     loadAllResponses()
     loadCategories()
@@ -308,10 +401,48 @@ export default function HomePage() {
     loadCategories()
   }
 
+  const recordResponseUsage = async (responseId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('increment_response_usage', {
+        response_id: responseId,
+      })
+
+      if (error) {
+        throw error
+      }
+
+      if (typeof data !== 'number' && typeof data !== 'string') {
+        return
+      }
+
+      const usageCount = Number(data)
+      if (!Number.isSafeInteger(usageCount)) {
+        return
+      }
+
+      setAllResponses((current) =>
+        sortResponses(
+          current.map((item) =>
+            item.id === responseId
+              ? {
+                  ...item,
+                  usage_count: Math.max(item.usage_count, usageCount),
+                }
+              : item,
+          ),
+          responseSort,
+        ),
+      )
+    } catch (error) {
+      console.warn('Unable to record response usage:', error)
+    }
+  }
+
   const handleCopyResponse = async (response: QuickResponse) => {
     try {
       await navigator.clipboard.writeText(response.text)
       toast.success('Response copied to clipboard!')
+      void recordResponseUsage(response.id)
     } catch (error) {
       toast.error('Unable to copy this response.')
       throw error
@@ -322,6 +453,15 @@ export default function HomePage() {
     setViewMode(mode)
     try {
       window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode)
+    } catch {
+      // Keep the in-memory preference when storage is unavailable.
+    }
+  }
+
+  const handleResponseSortChange = (sort: ResponseSort) => {
+    setResponseSort(sort)
+    try {
+      window.localStorage.setItem(RESPONSE_SORT_STORAGE_KEY, sort)
     } catch {
       // Keep the in-memory preference when storage is unavailable.
     }
@@ -425,31 +565,55 @@ export default function HomePage() {
                       {selectedCategory.description}
                     </p>
                   </div>
-                  <fieldset className="flex h-9 shrink-0 items-center rounded-md border border-border/80 bg-muted/25 p-0.5">
-                    <legend className="sr-only">Response view</legend>
-                    <Button
-                      aria-label="Card view"
-                      aria-pressed={viewMode === 'cards'}
-                      className="size-8 p-0"
-                      onClick={() => handleViewModeChange('cards')}
-                      size="icon"
-                      title="Card view"
-                      variant={viewMode === 'cards' ? 'secondary' : 'ghost'}
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Select
+                      onValueChange={(value: ResponseSort) =>
+                        handleResponseSortChange(value)
+                      }
+                      value={responseSort}
                     >
-                      <Grid2X2 className="size-4" />
-                    </Button>
-                    <Button
-                      aria-label="Compact view"
-                      aria-pressed={viewMode === 'compact'}
-                      className="size-8 p-0"
-                      onClick={() => handleViewModeChange('compact')}
-                      size="icon"
-                      title="Compact view"
-                      variant={viewMode === 'compact' ? 'secondary' : 'ghost'}
-                    >
-                      <List className="size-4" />
-                    </Button>
-                  </fieldset>
+                      <SelectTrigger
+                        aria-label="Response order"
+                        className="w-9 px-2 sm:w-36 sm:px-3"
+                        size="sm"
+                        title="Response order"
+                      >
+                        <ArrowDownUp className="size-4 sm:hidden" />
+                        <span className="hidden sm:inline">
+                          <SelectValue />
+                        </span>
+                      </SelectTrigger>
+                      <SelectContent align="end">
+                        <SelectItem value="default">Default order</SelectItem>
+                        <SelectItem value="most-used">Most used</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <fieldset className="flex h-9 items-center rounded-md border border-border/80 bg-muted/25 p-0.5">
+                      <legend className="sr-only">Response view</legend>
+                      <Button
+                        aria-label="Card view"
+                        aria-pressed={viewMode === 'cards'}
+                        className="size-8 p-0"
+                        onClick={() => handleViewModeChange('cards')}
+                        size="icon"
+                        title="Card view"
+                        variant={viewMode === 'cards' ? 'secondary' : 'ghost'}
+                      >
+                        <Grid2X2 className="size-4" />
+                      </Button>
+                      <Button
+                        aria-label="Compact view"
+                        aria-pressed={viewMode === 'compact'}
+                        className="size-8 p-0"
+                        onClick={() => handleViewModeChange('compact')}
+                        size="icon"
+                        title="Compact view"
+                        variant={viewMode === 'compact' ? 'secondary' : 'ghost'}
+                      >
+                        <List className="size-4" />
+                      </Button>
+                    </fieldset>
+                  </div>
                 </div>
 
                 <div className="flex-1 mt-5">
@@ -469,6 +633,8 @@ export default function HomePage() {
                             onCopy={handleCopyResponse}
                             onDelete={handleDeleteResponse}
                             onEdit={handleEditResponse}
+                            onTogglePin={handleTogglePinned}
+                            isPinPending={pendingPinIds.has(response.id)}
                             onRephrase={setResponseToRephrase}
                           />
                         ) : (
@@ -478,6 +644,8 @@ export default function HomePage() {
                             onCopy={handleCopyResponse}
                             onDelete={handleDeleteResponse}
                             onEdit={handleEditResponse}
+                            onTogglePin={handleTogglePinned}
+                            isPinPending={pendingPinIds.has(response.id)}
                             onRephrase={setResponseToRephrase}
                           />
                         ),

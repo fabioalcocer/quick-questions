@@ -1,6 +1,7 @@
 'use client'
 
 import { ResponseActions } from '@/components/response-actions'
+import { ResponseUsage } from '@/components/response-usage'
 import { Badge } from '@/components/ui/badge'
 import { useCopyResponse } from '@/hooks/use-copy-response'
 import type { QuickResponse } from '@/lib/quick-responses'
@@ -11,6 +12,8 @@ interface ResponseListRowProps {
   onCopy: (response: QuickResponse) => Promise<void>
   onDelete: (response: QuickResponse) => void
   onEdit: (response: QuickResponse) => void
+  onTogglePin: (response: QuickResponse) => void
+  isPinPending?: boolean
   onRephrase: (response: QuickResponse) => void
 }
 
@@ -19,6 +22,8 @@ export function ResponseListRow({
   onCopy,
   onDelete,
   onEdit,
+  onTogglePin,
+  isPinPending,
   onRephrase,
 }: ResponseListRowProps) {
   const { copied, copyResponse } = useCopyResponse(response, onCopy)
@@ -31,6 +36,7 @@ export function ResponseListRow({
       >
         {response.language}
       </Badge>
+      <ResponseUsage usageCount={response.usage_count} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-foreground">
           {response.text}
@@ -43,6 +49,8 @@ export function ResponseListRow({
         onCopy={copyResponse}
         onDelete={onDelete}
         onEdit={onEdit}
+        onTogglePin={onTogglePin}
+        isPinPending={isPinPending}
         onRephrase={onRephrase}
       />
     </div>

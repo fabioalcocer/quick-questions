@@ -55,7 +55,7 @@ export function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
 	return (
 		<>
 			<Card
-				className="group py-3 hover:shadow-md gap-0 aspect-square max-w-48 transition-all duration-200 hover:border-primary/20 cursor-pointer"
+				className="group aspect-square max-w-48 cursor-pointer gap-0 border-border/90 py-3 shadow-xs transition-[border-color,box-shadow] duration-200 hover:border-primary/30 hover:shadow-sm"
 				onClick={handleCardClick}
 			>
 				<CardHeader className="pb-0 px-4">
@@ -90,7 +90,7 @@ export function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
 						<Button
 							size="sm"
 							variant="ghost"
-							className="h-8 w-8 p-0 hover:bg-primary/90"
+							className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
 							onClick={handleEdit}
 						>
 							<Edit className="h-4 w-4" />

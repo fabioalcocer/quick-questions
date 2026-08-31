@@ -194,7 +194,7 @@ export default function NotesPage() {
 								placeholder="Search notes..."
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
-								className="pl-10 border-zinc-200 dark:border-input"
+								className="border-input bg-card pl-10"
 							/>
 						</div>
 
