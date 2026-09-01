@@ -73,7 +73,7 @@ begin
     end if;
 
     select topic.id into target_topic_id
-    from public.topics
+    from public.topics as topic
     where topic.user_id = current_user_id
       and lower(regexp_replace(btrim(topic.title), '\s+', ' ', 'g')) = normalized_title
     order by topic.created_at asc
