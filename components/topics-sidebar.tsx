@@ -92,8 +92,8 @@ export function TopicsSidebar({
         !open && 'w-0 border-r-0 opacity-0 pointer-events-none',
       )}
     >
-      <SidebarHeader className="border-b border-sidebar-border">
-        <div className="p-2 flex items-center justify-between">
+      <SidebarHeader className="h-15 shrink-0 gap-0 border-b border-sidebar-border p-0">
+        <div className="flex h-full items-center justify-between px-3">
           <h1 className="text-xl font-bold text-sidebar-foreground">Topics</h1>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
