@@ -1,8 +1,23 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import type { QuickResponse } from '@/lib/quick-responses'
-import { Check, Copy, Edit, Pin, Sparkles, Trash2 } from 'lucide-react'
+import {
+  Check,
+  Copy,
+  Edit,
+  MoreHorizontal,
+  Pin,
+  Sparkles,
+  Trash2,
+} from 'lucide-react'
 
 interface ResponseActionsProps {
   compact?: boolean
@@ -28,85 +43,144 @@ export function ResponseActions({
   onRephrase,
 }: ResponseActionsProps) {
   const sizeClassName = compact ? 'size-8' : 'size-9'
+  const actionsClassName = compact ? 'flex' : 'hidden sm:flex'
 
   return (
-    <div className="flex shrink-0 items-center gap-1">
-      <Button
-        aria-label={response.is_pinned ? 'Unpin response' : 'Pin response'}
-        aria-pressed={response.is_pinned}
-        className={`${sizeClassName} p-0 ${
-          response.is_pinned
-            ? 'text-primary hover:bg-primary/10 hover:text-primary'
-            : 'text-muted-foreground hover:text-foreground'
-        }`}
-        disabled={isPinPending}
-        onClick={(event) => {
-          event.stopPropagation()
-          onTogglePin(response)
-        }}
-        size="icon"
-        title={response.is_pinned ? 'Unpin' : 'Pin'}
-        variant="ghost"
-      >
-        <Pin className={`size-4 ${response.is_pinned ? 'fill-current' : ''}`} />
-      </Button>
-      <Button
-        aria-label={copied ? 'Response copied' : 'Copy response'}
-        className={`${sizeClassName} p-0`}
-        disabled={copied}
-        onClick={(event) => {
-          event.stopPropagation()
-          onCopy().catch(() => null)
-        }}
-        size="icon"
-        title={copied ? 'Copied' : 'Copy'}
-        variant="ghost"
-      >
-        {copied ? (
-          <Check className="size-4 text-primary" />
-        ) : (
-          <Copy className="size-4" />
-        )}
-      </Button>
-      <Button
-        aria-label="Rephrase response with AI"
-        className={`${sizeClassName} p-0 text-primary hover:bg-primary/10 hover:text-primary`}
-        onClick={(event) => {
-          event.stopPropagation()
-          onRephrase(response)
-        }}
-        size="icon"
-        title="Rephrase with AI"
-        variant="ghost"
-      >
-        <Sparkles className="size-4" />
-      </Button>
-      <Button
-        aria-label="Edit response"
-        className={`${sizeClassName} p-0`}
-        onClick={(event) => {
-          event.stopPropagation()
-          onEdit(response)
-        }}
-        size="icon"
-        title="Edit"
-        variant="ghost"
-      >
-        <Edit className="size-4" />
-      </Button>
-      <Button
-        aria-label="Delete response"
-        className={`${sizeClassName} p-0 text-destructive hover:bg-destructive/10 hover:text-destructive`}
-        onClick={(event) => {
-          event.stopPropagation()
-          onDelete(response)
-        }}
-        size="icon"
-        title="Delete"
-        variant="ghost"
-      >
-        <Trash2 className="size-4" />
-      </Button>
-    </div>
+    <>
+      {!compact ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              aria-label="Response actions"
+              className="size-9 p-0 sm:hidden"
+              onClick={(event) => event.stopPropagation()}
+              size="icon"
+              title="Response actions"
+              variant="ghost"
+            >
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              disabled={isPinPending}
+              onSelect={() => onTogglePin(response)}
+            >
+              <Pin
+                className={
+                  response.is_pinned ? 'fill-current text-primary' : ''
+                }
+              />
+              {response.is_pinned ? 'Unpin' : 'Pin'}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={copied}
+              onSelect={() => {
+                onCopy().catch(() => null)
+              }}
+            >
+              {copied ? <Check className="text-primary" /> : <Copy />}
+              {copied ? 'Copied' : 'Copy'}
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onRephrase(response)}>
+              <Sparkles className="text-primary" />
+              Rephrase with AI
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onEdit(response)}>
+              <Edit />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={() => onDelete(response)}
+              variant="destructive"
+            >
+              <Trash2 />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : null}
+      <div className={`${actionsClassName} shrink-0 items-center gap-1`}>
+        <Button
+          aria-label={response.is_pinned ? 'Unpin response' : 'Pin response'}
+          aria-pressed={response.is_pinned}
+          className={`${sizeClassName} p-0 ${
+            response.is_pinned
+              ? 'text-primary hover:bg-primary/10 hover:text-primary'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+          disabled={isPinPending}
+          onClick={(event) => {
+            event.stopPropagation()
+            onTogglePin(response)
+          }}
+          size="icon"
+          title={response.is_pinned ? 'Unpin' : 'Pin'}
+          variant="ghost"
+        >
+          <Pin
+            className={`size-4 ${response.is_pinned ? 'fill-current' : ''}`}
+          />
+        </Button>
+        <Button
+          aria-label={copied ? 'Response copied' : 'Copy response'}
+          className={`${sizeClassName} p-0`}
+          disabled={copied}
+          onClick={(event) => {
+            event.stopPropagation()
+            onCopy().catch(() => null)
+          }}
+          size="icon"
+          title={copied ? 'Copied' : 'Copy'}
+          variant="ghost"
+        >
+          {copied ? (
+            <Check className="size-4 text-primary" />
+          ) : (
+            <Copy className="size-4" />
+          )}
+        </Button>
+        <Button
+          aria-label="Rephrase response with AI"
+          className={`${sizeClassName} p-0 text-primary hover:bg-primary/10 hover:text-primary`}
+          onClick={(event) => {
+            event.stopPropagation()
+            onRephrase(response)
+          }}
+          size="icon"
+          title="Rephrase with AI"
+          variant="ghost"
+        >
+          <Sparkles className="size-4" />
+        </Button>
+        <Button
+          aria-label="Edit response"
+          className={`${sizeClassName} p-0`}
+          onClick={(event) => {
+            event.stopPropagation()
+            onEdit(response)
+          }}
+          size="icon"
+          title="Edit"
+          variant="ghost"
+        >
+          <Edit className="size-4" />
+        </Button>
+        <Button
+          aria-label="Delete response"
+          className={`${sizeClassName} p-0 text-destructive hover:bg-destructive/10 hover:text-destructive`}
+          onClick={(event) => {
+            event.stopPropagation()
+            onDelete(response)
+          }}
+          size="icon"
+          title="Delete"
+          variant="ghost"
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </div>
+    </>
   )
 }

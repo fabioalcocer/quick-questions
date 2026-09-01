@@ -37,8 +37,8 @@ export function ResponseCard({
       }}
     >
       <CardHeader className="pb-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-start justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <Badge
               className={`${getLanguageBadgeClassName(response.language)} cursor-default px-3 py-1.5 text-sm font-medium shadow-sm`}
               variant="secondary"

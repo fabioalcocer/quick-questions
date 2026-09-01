@@ -1,13 +1,13 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from '@/components/ui/card'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Sidebar,
   SidebarContent,
@@ -18,38 +18,49 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
+} from '@/components/ui/sidebar'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 import {
+  Download,
   Edit,
   LayoutGrid,
+  MoreHorizontal,
   Plus,
   Search,
   Trash2,
-} from "lucide-react";
-import { useState } from "react";
-import { Input } from "./ui/input";
-import { useSidebar } from "./ui/sidebar";
+  Upload,
+} from 'lucide-react'
+import { useState } from 'react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
+import { Input } from './ui/input'
+import { useSidebar } from './ui/sidebar'
 
 interface Topic {
-  id: string;
-  title: string;
-  description: string;
+  id: string
+  title: string
+  description: string
 }
 
 interface TopicsSidebarProps {
-  topics: Topic[];
-  selectedTopicId?: string;
-  onTopicSelect: (topicId: string) => void;
-  onAddTopic: () => void;
-  onEditTopic: (topic: Topic) => void;
-  onDeleteTopic: (topic: Topic) => void;
+  topics: Topic[]
+  selectedTopicId?: string
+  onTopicSelect: (topicId: string) => void
+  onAddTopic: () => void
+  onEditTopic: (topic: Topic) => void
+  onDeleteTopic: (topic: Topic) => void
+  onExportLibrary: () => void
+  onImportLibrary: () => void
 }
 
 export function TopicsSidebar({
@@ -59,31 +70,53 @@ export function TopicsSidebar({
   onAddTopic,
   onEditTopic,
   onDeleteTopic,
+  onExportLibrary,
+  onImportLibrary,
 }: TopicsSidebarProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const { open } = useSidebar();
+  const [searchQuery, setSearchQuery] = useState('')
+  const { open } = useSidebar()
 
   const filteredTopics = topics.filter((topic) => {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.toLowerCase()
     return (
       topic.title.toLowerCase().includes(query) ||
       topic.description.toLowerCase().includes(query)
-    );
-  });
+    )
+  })
 
   return (
     <Sidebar
       collapsible="none"
       className={cn(
-        "border-r border-sidebar-border w-[250px] bg-sidebar transition-all duration-300 ease-in-out",
-        !open && "w-0 border-r-0 opacity-0 pointer-events-none"
+        'border-r border-sidebar-border w-[250px] bg-sidebar transition-all duration-300 ease-in-out',
+        !open && 'w-0 border-r-0 opacity-0 pointer-events-none',
       )}
     >
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="p-2 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-sidebar-foreground">
-            Topics
-          </h1>
+          <h1 className="text-xl font-bold text-sidebar-foreground">Topics</h1>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                aria-label="Library actions"
+                className="h-8 w-8 p-0"
+                size="icon"
+                variant="ghost"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem onSelect={onExportLibrary}>
+                <Download className="mr-2 h-4 w-4" />
+                Export library
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={onImportLibrary}>
+                <Upload className="mr-2 h-4 w-4" />
+                Import library
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </SidebarHeader>
 
@@ -108,11 +141,12 @@ export function TopicsSidebar({
               <SidebarMenu className="space-y-2 pl-1 pr-2">
                 <SidebarMenuItem>
                   <Card
-                    className={`group/card cursor-pointer transition-all duration-300 rounded-md py-0 hover:bg-sidebar-accent ${selectedTopicId === "all"
-                      ? "bg-sidebar-accent border-sidebar-primary ring-1 ring-sidebar-primary"
-                      : ""
-                      }`}
-                    onClick={() => onTopicSelect("all")}
+                    className={`group/card cursor-pointer transition-all duration-300 rounded-md py-0 hover:bg-sidebar-accent ${
+                      selectedTopicId === 'all'
+                        ? 'bg-sidebar-accent border-sidebar-primary ring-1 ring-sidebar-primary'
+                        : ''
+                    }`}
+                    onClick={() => onTopicSelect('all')}
                   >
                     <CardHeader className="p-3 relative">
                       <div className="flex items-center gap-2">
@@ -133,10 +167,11 @@ export function TopicsSidebar({
                 {filteredTopics.map((topic) => (
                   <SidebarMenuItem key={topic.id}>
                     <Card
-                      className={`group/card cursor-pointer transition-all duration-300 rounded-md py-0 hover:bg-sidebar-accent ${selectedTopicId === topic.id
-                        ? "bg-sidebar-accent border-sidebar-primary ring-1 ring-sidebar-primary"
-                        : ""
-                        }`}
+                      className={`group/card cursor-pointer transition-all duration-300 rounded-md py-0 hover:bg-sidebar-accent ${
+                        selectedTopicId === topic.id
+                          ? 'bg-sidebar-accent border-sidebar-primary ring-1 ring-sidebar-primary'
+                          : ''
+                      }`}
                       onClick={() => onTopicSelect(topic.id)}
                     >
                       <CardHeader className="p-3 relative">
@@ -155,8 +190,8 @@ export function TopicsSidebar({
                               variant="ghost"
                               className="h-6 w-6 p-0 hover:bg-transparent group-hover/card:opacity-100 opacity-0 transition-opacity"
                               onClick={(e) => {
-                                e.stopPropagation();
-                                onEditTopic(topic);
+                                e.stopPropagation()
+                                onEditTopic(topic)
                               }}
                             >
                               <Edit className="h-3.5 w-3.5" />
@@ -166,8 +201,8 @@ export function TopicsSidebar({
                               variant="ghost"
                               className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 group-hover/card:opacity-100 opacity-0 transition-opacity"
                               onClick={(e) => {
-                                e.stopPropagation();
-                                onDeleteTopic(topic);
+                                e.stopPropagation()
+                                onDeleteTopic(topic)
                               }}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -184,5 +219,5 @@ export function TopicsSidebar({
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  );
+  )
 }

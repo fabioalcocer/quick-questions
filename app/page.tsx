@@ -27,9 +27,14 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
+import {
+  buildLibraryExport,
+  libraryExportFilename,
+} from '@/lib/library-transfer'
 import type { Category, QuickResponse, Topic } from '@/lib/quick-responses'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowDownUp, Grid2X2, List, Loader2, Plus } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -40,6 +45,14 @@ type ResponseSort = 'default' | 'most-used'
 const VIEW_MODE_STORAGE_KEY = 'quick-responses:view-mode:v1'
 const RESPONSE_SORT_STORAGE_KEY = 'quick-responses:response-sort:v1'
 const LANGUAGE_ORDER = { Spanish: 0, English: 1, Portuguese: 2 }
+
+const LibraryImportDialog = dynamic(
+  () =>
+    import('@/components/library-import-dialog').then(
+      (module) => module.LibraryImportDialog,
+    ),
+  { ssr: false },
+)
 
 function sortResponses(
   responses: QuickResponse[],
@@ -74,6 +87,7 @@ export default function HomePage() {
   const [pendingPinIds, setPendingPinIds] = useState<Set<string>>(new Set())
   const [viewMode, setViewMode] = useState<ViewMode>('cards')
   const [responseSort, setResponseSort] = useState<ResponseSort>('default')
+  const [libraryImportOpen, setLibraryImportOpen] = useState(false)
 
   // Topic modals
   const [topicFormOpen, setTopicFormOpen] = useState(false)
@@ -165,8 +179,10 @@ export default function HomePage() {
       if (data && data.length > 0 && !selectedTopicId) {
         setSelectedTopicId('all')
       }
+      return data || []
     } catch (error) {
       console.error('Error loading topics:', error)
+      return []
     }
   }
 
@@ -210,8 +226,10 @@ export default function HomePage() {
           setSelectedCategoryId(firstCatInTopic.id)
         }
       }
+      return categoriesWithCounts
     } catch (error) {
       console.error('Error loading categories:', error)
+      return []
     } finally {
       setLoading(false)
     }
@@ -229,9 +247,51 @@ export default function HomePage() {
         usage_count: response.usage_count ?? 0,
       }))
       setAllResponses(sortResponses(responses, responseSort))
+      return responses
     } catch (error) {
       console.error('Error loading all responses:', error)
+      return []
     }
+  }
+
+  const handleExportLibrary = () => {
+    try {
+      const library = buildLibraryExport(topics, categories, allResponses)
+      const blob = new Blob([JSON.stringify(library, null, 2)], {
+        type: 'application/json',
+      })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = libraryExportFilename()
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+      toast.success('Library exported.')
+    } catch (error) {
+      console.error('Error exporting library:', error)
+      toast.error('Unable to export this library.')
+    }
+  }
+
+  const reloadLibrary = async () => {
+    const [nextTopics, nextCategories] = await Promise.all([
+      loadTopics(),
+      loadCategories(),
+      loadAllResponses(),
+    ])
+
+    setSelectedTopicId((current) =>
+      current === 'all' || nextTopics.some((topic) => topic.id === current)
+        ? current
+        : 'all',
+    )
+    setSelectedCategoryId((current) =>
+      nextCategories.some((category) => category.id === current)
+        ? current
+        : nextCategories[0]?.id || '',
+    )
   }
 
   const updateCategoryOrder = async (reorderedCategories: Category[]) => {
@@ -505,6 +565,8 @@ export default function HomePage() {
         onAddTopic={handleAddTopic}
         onEditTopic={handleEditTopic}
         onDeleteTopic={handleDeleteTopic}
+        onExportLibrary={handleExportLibrary}
+        onImportLibrary={() => setLibraryImportOpen(true)}
       />
 
       <AppSidebar
@@ -756,6 +818,14 @@ export default function HomePage() {
         response={responseToRephrase}
         onClose={() => setResponseToRephrase(null)}
       />
+
+      {libraryImportOpen && (
+        <LibraryImportDialog
+          onImported={reloadLibrary}
+          onOpenChange={setLibraryImportOpen}
+          open={libraryImportOpen}
+        />
+      )}
     </SidebarProvider>
   )
 }
